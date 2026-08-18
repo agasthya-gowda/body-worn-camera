@@ -21,6 +21,18 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _errorMessage = 'Please enter badge ID and password');
       return;
     }
+    if (_passwordController.text.length < 8) {
+      setState(() => _errorMessage = 'Password must be at least 8 characters');
+      return;
+    }
+    if (!_passwordController.text.contains(RegExp(r'[A-Z]'))) {
+      setState(() => _errorMessage = 'Password must contain at least one capital letter');
+      return;
+    }
+    if (!_passwordController.text.contains(RegExp(r'[0-9]'))) {
+      setState(() => _errorMessage = 'Password must contain at least one number');
+      return;
+    }
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -67,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 2,
                     ),
                   ),
-                  child: const Icon(Icons.shield, size: 44, color: Colors.white),
+                  child: Image.asset('assets/images/chipscape_logo.jpeg', width: 80, height: 80),
                 ),
                 const SizedBox(height: 16),
                 const Text(
