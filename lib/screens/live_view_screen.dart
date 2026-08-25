@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'recording_screen.dart';
+import '../services/api_service.dart';
 
 class LiveViewScreen extends StatefulWidget {
   const LiveViewScreen({super.key});
@@ -13,11 +14,73 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
   bool _isRecording = false;
   String _currentTime = '';
   String _location = '12.9716° N, 77.5946° E · MG Road, Bengaluru';
+  final ApiService _apiService = ApiService();
+  bool _isStreaming = false;
+  bool _isConnecting = true;
+  String? _rtspUrl;
+  String? _wsIp;
+  String? _wsPort;
+  String _streamError = '';
+  // TODO: This should come from the selected device on dashboard, hardcoded for now
+  final String _hostbody = "0300098";
+  final String _imei = "864156025728283";
 
   @override
   void initState() {
     super.initState();
     _updateTime();
+    _startStream();
+  }
+
+  Future<void> _startStream() async {
+    setState(() => _isConnecting = true);
+    final result = await _apiService.startVideoCall([_hostbody]);
+    final streams = result['streams'] as List<Map<String, dynamic>>;
+
+    if (result['code'] == 200 && streams.isNotEmpty) {
+      final streamData = streams[0];
+      setState(() {
+        _rtspUrl = streamData['rtsp'];
+        _wsIp = streamData['wsip'];
+        _wsPort = streamData['wsport'];
+        _isStreaming = true;
+        _isConnecting = false;
+      });
+      // Start audio alongside video, per "process for audio calls is same as video calls" (doc para 13)
+      await _apiService.startAudioCall([_hostbody]);
+    } else {
+      final failedDevices = result['failedDevices'] as List<Map<String, dynamic>>;
+      String errorMsg = result['msg'] ?? 'Failed to start video call';
+      if (failedDevices.isNotEmpty) {
+        errorMsg = failedDevices[0]['err_msg'] ?? errorMsg;
+      }
+      setState(() {
+        _streamError = errorMsg;
+        _isConnecting = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _apiService.stopVideoCall([_hostbody]);
+    _apiService.stopAudioCall([_hostbody], ["1"]);
+    super.dispose();
+  }
+
+  Future<void> _toggleMute() async {
+    final newMuteState = !_isMuted;
+    final commandType = newMuteState ? "startmute" : "stopmute";
+    final result = await _apiService.sendCommand(_imei, commandType);
+    if (result['code'] == 200) {
+      setState(() => _isMuted = newMuteState);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to ${newMuteState ? "mute" : "unmute"}: ${result['msg']}')),
+        );
+      }
+    }
   }
 
   void _updateTime() {
@@ -147,7 +210,7 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
                       icon: _isMuted ? Icons.mic_off : Icons.mic,
                       label: _isMuted ? 'Unmute' : 'Mute',
                       color: _isMuted ? Colors.red : Colors.white,
-                      onTap: () => setState(() => _isMuted = !_isMuted),
+                      onTap: _toggleMute,
                     ),
                     GestureDetector(
                       onTap: () {

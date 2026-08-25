@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
+import '../services/api_service.dart';
+import 'add_officer_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -10,6 +12,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final ApiService _apiService = ApiService();
   bool _recordingIndicator = true;
   bool _autoUpload = true;
   bool _uploadOnWifiOnly = true;
@@ -34,6 +37,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _recordingQuality = prefs.getString('recordingQuality') ?? '1080p';
     });
   }
+
+
 
   Future<void> _saveSetting(String key, dynamic value) async {
     final prefs = await SharedPreferences.getInstance();
@@ -188,6 +193,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     content: Text('Connect USB cable to BWC device'),
                     backgroundColor: Color(0xFF1A3A6B),
                   ),
+                );
+              },
+            ),
+          ]),
+          const SizedBox(height: 16),
+          _buildSectionTitle('Admin'),
+          _buildSettingsCard([
+            _buildNavigationTile(
+              icon: Icons.person_add,
+              label: 'Add Officer',
+              subtitle: 'Register a new officer account',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddOfficerScreen()),
                 );
               },
             ),

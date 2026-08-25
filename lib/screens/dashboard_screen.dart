@@ -6,6 +6,8 @@ import 'videos_list_screen.dart';
 import 'upload_screen.dart';
 import 'settings_screen.dart';
 import 'login_screen.dart';
+import '../services/api_service.dart';
+import 'dart:async';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -18,17 +20,97 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
   String _username = 'Officer';
   bool _cameraConnected = false;
-  int _batteryLevel = 78;
-  double _storageUsed = 4.2;
-  double _storageTotal = 128.0;
-  int _recordingsToday = 3;
-  String _totalDuration = '26:53';
-  bool _gpsActive = true;
+  int _batteryLevel = 0;
+  double _storageUsed = 0.0;
+  double _storageTotal = 0.0;
+  int _recordingsToday = 0;
+  String _totalDuration = '00:00';
+  bool _gpsActive = false;
+  bool _isLoadingDevices = true;
+  List<Map<String, dynamic>> _onlineDevices = [];
+  final ApiService _apiService = ApiService();
+  Timer? _heartbeatTimer;
 
   @override
   void initState() {
     super.initState();
     _loadUsername();
+    _startHeartbeat();
+    _loadOnlineDevices();
+  }
+
+  void _startHeartbeat() {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 20), (timer) async {
+      final success = await _apiService.sendHeartbeat();
+      if (!success && mounted) {
+        timer.cancel();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Session expired. Please log in again.')),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        }
+      }
+    });
+  }
+
+  Future<void> _loadOnlineDevices() async {
+    try {
+      // Step 1: Get online device list (hierarchical: company -> sub devices)
+      final result = await _apiService.getOnlineDevices();
+      if (result['code'] == 200) {
+        final companies = List<Map<String, dynamic>>.from(result['data'] ?? []);
+
+        // Flatten: pull all devices out of each company's "sub" array
+        List<Map<String, dynamic>> devices = [];
+        for (var company in companies) {
+          if (company['sub'] != null) {
+            devices.addAll(List<Map<String, dynamic>>.from(company['sub']));
+          }
+        }
+
+        setState(() {
+          _onlineDevices = devices;
+        });
+
+        if (devices.isNotEmpty) {
+          final firstDevice = devices[0];
+          setState(() {
+            _cameraConnected = firstDevice['lineon'] == 1;
+            _gpsActive = true;
+          });
+
+          // Step 2: Get device detail (battery, storage, signal) for this device
+          final detailResult = await _apiService.getDeviceDetail(
+            firstDevice['imei'] ?? '',
+            firstDevice['did'] ?? '',
+          );
+
+          if (detailResult['code'] == 200) {
+            final detailData = List<Map<String, dynamic>>.from(detailResult['data'] ?? []);
+            if (detailData.isNotEmpty) {
+              final detail = detailData[0];
+              setState(() {
+                _batteryLevel = int.tryParse(detail['electric']?.toString() ?? '0') ?? 0;
+                _storageUsed = (double.tryParse(detail['capacity']?.toString() ?? '0') ?? 0) / 1000;
+                _storageTotal = (double.tryParse(detail['totalcapacity']?.toString() ?? '0') ?? 0) / 1000;
+              });
+            }
+          }
+        }
+
+        setState(() => _isLoadingDevices = false);
+      } else {
+        setState(() => _isLoadingDevices = false);
+      }
+    } catch (e) {
+      setState(() => _isLoadingDevices = false);
+    }
   }
 
   Future<void> _loadUsername() async {
@@ -38,7 +120,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _heartbeatTimer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _logout() async {
+    _heartbeatTimer?.cancel();
+    await _apiService.logout();
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     if (mounted) {
@@ -381,7 +471,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const Icon(Icons.battery_charging_full, size: 14, color: Colors.green),
                       const SizedBox(width: 2),
                       Text(
-                        '%',
+                        '$_batteryLevel%',
                         style: const TextStyle(color: Colors.green, fontSize: 12),
                       ),
                     ],
