@@ -83,6 +83,61 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
     }
   }
 
+  Future<void> _takePhoto() async {
+    final result = await _apiService.takePhoto(_imei);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['code'] == 200 ? 'Photo captured!' : 'Failed: ${result['msg']}'),
+          backgroundColor: result['code'] == 200 ? Colors.green : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _startRemoteVideo() async {
+    final result = await _apiService.startRemoteVideo(_imei);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['code'] == 200 ? 'Remote recording started!' : 'Failed: ${result['msg']}'),
+          backgroundColor: result['code'] == 200 ? Colors.green : Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _confirmRestart() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Restart Device?'),
+        content: const Text('This will restart the body worn camera. Continue?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final result = await _apiService.remoteRestart(imei: _imei, hostbody: _hostbody);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(result['code'] == 200 ? 'Restart command sent!' : 'Failed: ${result['msg']}'),
+                    backgroundColor: result['code'] == 200 ? Colors.green : Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Restart', style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _updateTime() {
     final now = DateTime.now();
     setState(() {
@@ -203,6 +258,30 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildControlButton(
+                      icon: Icons.camera_alt_outlined,
+                      label: 'Photo',
+                      color: Colors.white,
+                      onTap: _takePhoto,
+                    ),
+                    _buildControlButton(
+                      icon: Icons.videocam_outlined,
+                      label: 'Remote Rec',
+                      color: Colors.white,
+                      onTap: _startRemoteVideo,
+                    ),
+                    _buildControlButton(
+                      icon: Icons.restart_alt,
+                      label: 'Restart',
+                      color: Colors.orange,
+                      onTap: _confirmRestart,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [

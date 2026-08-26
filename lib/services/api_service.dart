@@ -309,5 +309,87 @@ class ApiService {
     }
   }
 
+  // ---------------- REMOTE CONTROL APIS (Section 5) ----------------
+
+  // 5.1 Remote Take Photo
+  Future<Map<String, dynamic>> takePhoto(String imei) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismoni/send_cmd"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({
+          "imei": imei,
+          "type": "takephoto",
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
+  // 5.1 Remote Start Video Recording
+  Future<Map<String, dynamic>> startRemoteVideo(String imei) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismoni/send_cmd"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({
+          "imei": imei,
+          "type": "startvideo",
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
+  // 5.2 Remote Restart Device
+  Future<Map<String, dynamic>> remoteRestart({
+    required String imei,
+    required String hostbody,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismoni/send_restart"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({
+          "imei": imei,
+          "hostbody": hostbody,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
+  // 5.3 User Info Inquiry (Bulk - matches doc's array-based format exactly)
+  Future<Map<String, dynamic>> getDeviceDetailsBulk(List<String> ids) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismoni/get_devicedetail"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({"ids": ids}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
   bool get isLoggedIn => _sessionCookie != null;
 }
