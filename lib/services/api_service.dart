@@ -119,6 +119,8 @@ class ApiService {
       final response = await http.post(
         Uri.parse("$baseUrl/rest/other/unitjson/gdlist"),
         headers: _authHeaders(),
+        // Doc's 6.2 spec requires these exact fixed fields (bh="bh", text="dname")
+        body: jsonEncode({"bh": "bh", "text": "dname"}),
       );
       return jsonDecode(response.body);
     } catch (e) {
@@ -384,6 +386,124 @@ class ApiService {
           "Cookie": _sessionCookie ?? '',
         },
         body: jsonEncode({"ids": ids}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
+  // ---------------- DEVICE APIS (Section 6) ----------------
+
+  // 6.1 Add New Device
+  Future<Map<String, dynamic>> addDevice({
+    required String bh,
+    required String hostbody,
+    required String recorderType,
+    required String typesn,
+    String? productFirm,
+    String? capacity,
+    String? version,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/add"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({
+          "bh": bh,
+          "hostbody": hostbody,
+          "recorder_type": recorderType,
+          "typesn": typesn,
+          if (productFirm != null) "product_firm": productFirm,
+          if (capacity != null) "capacity": capacity,
+          if (version != null) "version": version,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
+  // 6.3 All Device List (search/filter all devices)
+  Future<Map<String, dynamic>> getAllDeviceList({
+    String? hostkey,
+    String? hostbody,
+    String? bh,
+    String? state,
+    String? devicetype,
+    int pageSize = 20,
+    int curPage = 1,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/devicelist"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({
+          if (hostkey != null) "hostkey": hostkey,
+          if (hostbody != null) "hostbody": hostbody,
+          if (bh != null) "bh": bh,
+          if (state != null) "state": state,
+          if (devicetype != null) "devicetype": devicetype,
+          "page_size": pageSize,
+          "cur_page": curPage,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
+  // 6.4 Modify Device
+  Future<Map<String, dynamic>> modifyDevice({
+    required String id,
+    required String bh,
+    required String recorderType,
+    required String typesn,
+    String? productFirm,
+    String? capacity,
+    String? version,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/saveedit"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({
+          "id": id,
+          "bh": bh,
+          "recorder_type": recorderType,
+          "typesn": typesn,
+          if (productFirm != null) "product_firm": productFirm,
+          if (capacity != null) "capacity": capacity,
+          if (version != null) "version": version,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Error: $e"};
+    }
+  }
+
+  // 6.5 Delete Device
+  Future<Map<String, dynamic>> deleteDevice(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/del"),
+        headers: {
+          "Content-Type": "application/json",
+          "Cookie": _sessionCookie ?? '',
+        },
+        body: jsonEncode({"id": id}),
       );
       return jsonDecode(response.body);
     } catch (e) {

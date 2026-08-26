@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import '../services/api_service.dart';
 import 'add_officer_screen.dart';
+import 'device_management_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -208,6 +209,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AddOfficerScreen()),
+                );
+              },
+            ),
+            _buildDivider(),
+            _buildNavigationTile(
+              icon: Icons.videocam_outlined,
+              label: 'Manage Devices',
+              subtitle: 'Add, edit or remove BWC devices',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const DeviceManagementScreen()),
                 );
               },
             ),
