@@ -41,6 +41,7 @@ dependencies:
   video_player: ^2.13.0
   flutter_blue_plus: ^2.3.12
   crypto: ^3.0.3
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

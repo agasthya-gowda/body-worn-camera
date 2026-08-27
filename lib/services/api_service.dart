@@ -309,5 +309,234 @@ class ApiService {
     }
   }
 
+  // ---------------- MODIFY USER (multipart/form-data per doc) ----------------
+  // Note: pe_signals omitted per vendor's confirmation - it's for internal use only
+  Future<Map<String, dynamic>> modifyUser({
+    required String id,
+    required String realname,
+    required String bh,
+    required String type,
+    String? mobile,
+    String? tel,
+    String? sort,
+    String? note,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse("$baseUrl/rest/user/police/saveedit"),
+      );
+      request.headers.addAll(_authHeaders());
+      request.fields['id'] = id;
+      request.fields['realname'] = realname;
+      request.fields['bh'] = bh;
+      request.fields['type'] = type;
+      if (mobile != null) request.fields['mobile'] = mobile;
+      if (tel != null) request.fields['tel'] = tel;
+      if (sort != null) request.fields['sort'] = sort;
+      if (note != null) request.fields['note'] = note;
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- SEARCH USER (application/json per doc) ----------------
+  // Response includes user_type dictionary - useful for populating type dropdown dynamically
+  Future<Map<String, dynamic>> searchUsers({
+    String? hostkey,
+    String? bh,
+    String? type,
+    String? bind, // "0" = no limit, "1" = binding, "2" = no binding (per doc)
+    int pageSize = 20,
+    int curPage = 1,
+  }) async {
+    try {
+      Map<String, dynamic> body = {
+        "page_size": pageSize,
+        "cur_page": curPage,
+      };
+      if (hostkey != null) body['hostkey'] = hostkey;
+      if (bh != null) body['bh'] = bh;
+      if (type != null) body['type'] = type;
+      if (bind != null) body['bind'] = bind;
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/user/police/policelist"),
+        headers: _authHeaders(),
+        body: jsonEncode(body),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- DELETE USER (application/json per doc) ----------------
+  // Note: pe_signals omitted per vendor's confirmation - it's for internal use only
+  Future<Map<String, dynamic>> deleteUser(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/user/police/del"),
+        headers: _authHeaders(),
+        body: jsonEncode({"id": id}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- NEW MESSAGE (multipart/form-data, includes image file) ----------------
+  Future<Map<String, dynamic>> createMessage({
+    required String title,
+    required String content,
+    required List<int> imageBytes,
+    required String imageFileName,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse("$baseUrl/rest/gis/gismessage/add"),
+      );
+      request.headers.addAll(_authHeaders());
+      request.fields['title'] = title;
+      request.fields['type'] = '0'; // Fixed value per doc
+      request.fields['content'] = content;
+      request.files.add(http.MultipartFile.fromBytes(
+        'pic_mess',
+        imageBytes,
+        filename: imageFileName,
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- SEND MESSAGE (application/json) ----------------
+  // Note: pe_signals omitted per vendor's confirmation
+  Future<Map<String, dynamic>> sendMessage({
+    required String messId,
+    required List<String> deviceList,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismessagesend/send"),
+        headers: _authHeaders(),
+        body: jsonEncode({"mess_id": messId, "device": deviceList}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- MESSAGE SEARCH (application/json) ----------------
+  Future<Map<String, dynamic>> searchMessages({
+    String? keyword,
+    int pageSize = 20,
+    int curPage = 1,
+  }) async {
+    try {
+      Map<String, dynamic> body = {
+        "page_size": pageSize,
+        "cur_page": curPage,
+      };
+      if (keyword != null) body['keyword'] = keyword;
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismessage/messlist"),
+        headers: _authHeaders(),
+        body: jsonEncode(body),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- MODIFY MESSAGE (multipart/form-data, includes image file) ----------------
+  // Note: pic_mess is marked Required in doc even for edit - matching literally.
+  // TODO: Verify with real server if editing without re-uploading image is actually possible.
+  Future<Map<String, dynamic>> modifyMessage({
+    required String messId,
+    required String title,
+    required String content,
+    required List<int> imageBytes,
+    required String imageFileName,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse("$baseUrl/rest/gis/gismessage/saveEdit"),
+      );
+      request.headers.addAll(_authHeaders());
+      request.fields['messid'] = messId;
+      request.fields['title'] = title;
+      request.fields['type'] = '0'; // Fixed value per doc
+      request.fields['content'] = content;
+      request.files.add(http.MultipartFile.fromBytes(
+        'pic_mess',
+        imageBytes,
+        filename: imageFileName,
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- DELETE MESSAGE (application/json) ----------------
+  Future<Map<String, dynamic>> deleteMessage(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismessage/del"),
+        headers: _authHeaders(),
+        body: jsonEncode({"id": id}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- SENT MESSAGE LIST (application/json) ----------------
+  Future<Map<String, dynamic>> getSentMessageList({
+    required String id,
+    String? keyword,
+    String? bh,
+    String pageSize = "20",
+    String curPage = "1",
+  }) async {
+    try {
+      Map<String, dynamic> body = {
+        "id": id,
+        "page_size": pageSize,
+        "cur_page": curPage,
+      };
+      if (keyword != null) body['keyword'] = keyword;
+      if (bh != null) body['bh'] = bh;
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismessagesendlist/messglist"),
+        headers: _authHeaders(),
+        body: jsonEncode(body),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
   bool get isLoggedIn => _sessionCookie != null;
 }

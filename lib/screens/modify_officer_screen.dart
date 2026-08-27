@@ -1,37 +1,49 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
-class AddOfficerScreen extends StatefulWidget {
+class ModifyOfficerScreen extends StatefulWidget {
+  final Map<String, dynamic> officer;
   final Map<String, dynamic> userTypes;
 
-  const AddOfficerScreen({super.key, required this.userTypes});
+  const ModifyOfficerScreen({super.key, required this.officer, required this.userTypes});
 
   @override
-  State<AddOfficerScreen> createState() => _AddOfficerScreenState();
+  State<ModifyOfficerScreen> createState() => _ModifyOfficerScreenState();
 }
 
-class _AddOfficerScreenState extends State<AddOfficerScreen> {
+class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
   final _formKey = GlobalKey<FormState>();
   final ApiService _apiService = ApiService();
 
-  final _hostcodeController = TextEditingController();
-  final _realnameController = TextEditingController();
-  final _bhController = TextEditingController();
-  final _mobileController = TextEditingController();
-  final _telController = TextEditingController();
-  final _sortController = TextEditingController();
-  final _noteController = TextEditingController();
-
+  late TextEditingController _realnameController;
+  late TextEditingController _bhController;
   String? _selectedType;
+  late TextEditingController _mobileController;
+  late TextEditingController _telController;
+  late TextEditingController _sortController;
+  late TextEditingController _noteController;
+
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _realnameController = TextEditingController(text: widget.officer['realname'] ?? '');
+    _bhController = TextEditingController(text: widget.officer['dbh'] ?? widget.officer['bh'] ?? '');
+    _selectedType = widget.officer['type']?.toString();
+    _mobileController = TextEditingController(text: widget.officer['mobile'] ?? '');
+    _telController = TextEditingController(text: widget.officer['tel'] ?? '');
+    _sortController = TextEditingController(text: widget.officer['sort'] ?? '');
+    _noteController = TextEditingController(text: widget.officer['note'] ?? '');
+  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
 
-    final result = await _apiService.registerUser(
-      hostcode: _hostcodeController.text.trim(),
+    final result = await _apiService.modifyUser(
+      id: widget.officer['id'].toString(),
       realname: _realnameController.text.trim(),
       bh: _bhController.text.trim(),
       type: _selectedType ?? '',
@@ -46,14 +58,10 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
     if (!mounted) return;
 
     if (result['code'] == 200) {
-      final newUserId = result['data']?['id'];
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Officer registered successfully (ID: $newUserId)'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text('Officer updated successfully'), backgroundColor: Colors.green),
       );
-      Navigator.pop(context, newUserId);
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed: ${result['msg']}'), backgroundColor: Colors.red),
@@ -61,9 +69,48 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
     }
   }
 
+  Future<void> _deleteOfficer() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Officer'),
+        content: Text('Are you sure you want to delete ${widget.officer['realname']}? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isSubmitting = true);
+    final result = await _apiService.deleteUser(widget.officer['id'].toString());
+    setState(() => _isSubmitting = false);
+
+    if (!mounted) return;
+
+    if (result['code'] == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Officer deleted'), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete: ${result['msg']}'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   void dispose() {
-    _hostcodeController.dispose();
     _realnameController.dispose();
     _bhController.dispose();
     _mobileController.dispose();
@@ -79,7 +126,7 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Add Officer', style: TextStyle(color: Color(0xFF0A1628), fontWeight: FontWeight.bold)),
+        title: const Text('Edit Officer', style: TextStyle(color: Color(0xFF0A1628), fontWeight: FontWeight.bold)),
         elevation: 0,
       ),
       body: Form(
@@ -88,9 +135,9 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             TextFormField(
-              controller: _hostcodeController,
-              decoration: const InputDecoration(labelText: 'Badge ID / Hostcode *', border: OutlineInputBorder()),
-              validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+              initialValue: widget.officer['hostcode'] ?? '',
+              decoration: const InputDecoration(labelText: 'Badge ID (cannot be changed)', border: OutlineInputBorder()),
+              enabled: false,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -148,7 +195,17 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
               ),
               child: _isSubmitting
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Register Officer', style: TextStyle(fontWeight: FontWeight.bold)),
+                  : const Text('Update Officer', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: _isSubmitting ? null : _deleteOfficer,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: const Text('Delete Officer', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),

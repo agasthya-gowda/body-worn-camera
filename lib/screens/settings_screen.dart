@@ -3,6 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import '../services/api_service.dart';
 import 'add_officer_screen.dart';
+import 'officer_list_screen.dart';
+import 'messages_list_screen.dart';
+import 'message_history_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -201,13 +204,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionTitle('Admin'),
           _buildSettingsCard([
             _buildNavigationTile(
-              icon: Icons.person_add,
-              label: 'Add Officer',
-              subtitle: 'Register a new officer account',
+              icon: Icons.people,
+              label: 'Manage Officers',
+              subtitle: 'View, add, or edit officer accounts',
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const AddOfficerScreen()),
+                  MaterialPageRoute(builder: (context) => const OfficerListScreen()),
+                );
+              },
+            ),
+            _buildDivider(),
+            _buildNavigationTile(
+              icon: Icons.message,
+              label: 'Dispatch Messages',
+              subtitle: 'Create and send alerts to officers',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MessagesListScreen()),
+                );
+              },
+            ),
+            _buildDivider(),
+            _buildNavigationTile(
+              icon: Icons.history,
+              label: 'Message History',
+              subtitle: 'View who received each message',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MessageHistoryScreen()),
                 );
               },
             ),
