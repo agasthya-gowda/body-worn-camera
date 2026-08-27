@@ -6,6 +6,7 @@ import 'add_officer_screen.dart';
 import 'officer_list_screen.dart';
 import 'messages_list_screen.dart';
 import 'message_history_screen.dart';
+import 'live_tracking_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -211,6 +212,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const OfficerListScreen()),
+                );
+              },
+            ),
+            _buildDivider(),
+            _buildNavigationTile(
+              icon: Icons.map,
+              label: 'Live Tracking',
+              subtitle: 'View officer locations on map',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LiveTrackingScreen()),
                 );
               },
             ),

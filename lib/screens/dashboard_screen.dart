@@ -23,6 +23,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _batteryLevel = 0;
   double _storageUsed = 0.0;
   double _storageTotal = 0.0;
+  String _signalType = '';
+  String _signalStrength = '';
+  String _deviceLat = '';
+  String _deviceLng = '';
+  String _deviceHostname = '';
+  String _deviceHostcode = '';
+  String _deviceUnitname = '';
+  String _deviceHostbody = '';
+  String _deviceImei = '';
+  String _deviceMobile = '';
   int _recordingsToday = 0;
   String _totalDuration = '00:00';
   bool _gpsActive = false;
@@ -86,10 +96,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           });
 
           // Step 2: Get device detail (battery, storage, signal) for this device
-          final detailResult = await _apiService.getDeviceDetail(
-            firstDevice['imei'] ?? '',
-            firstDevice['did'] ?? '',
-          );
+          // Per doc Section 5, item 22: request uses device SN (did/hostbody), not imei
+          final detailResult = await _apiService.getDeviceDetail([firstDevice['did'] ?? '']);
 
           if (detailResult['code'] == 200) {
             final detailData = List<Map<String, dynamic>>.from(detailResult['data'] ?? []);
@@ -99,6 +107,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _batteryLevel = int.tryParse(detail['electric']?.toString() ?? '0') ?? 0;
                 _storageUsed = (double.tryParse(detail['capacity']?.toString() ?? '0') ?? 0) / 1000;
                 _storageTotal = (double.tryParse(detail['totalcapacity']?.toString() ?? '0') ?? 0) / 1000;
+                _signalType = detail['signal_cate']?.toString() ?? '';
+                _signalStrength = detail['signal']?.toString() ?? '';
+                _deviceLat = detail['latitude']?.toString() ?? '';
+                _deviceLng = detail['longitude']?.toString() ?? '';
+                _deviceHostname = detail['hostname']?.toString() ?? '';
+                _deviceHostcode = detail['hostcode']?.toString() ?? '';
+                _deviceUnitname = detail['unitname']?.toString() ?? '';
+                _deviceHostbody = detail['hostbody']?.toString() ?? '';
+                _deviceImei = detail['imei']?.toString() ?? '';
+                _deviceMobile = detail['mobile']?.toString() ?? '';
               });
             }
           }
@@ -137,6 +155,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
+  }
+
+  void _showDeviceInfoSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Device Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0A1628))),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text('OFFICER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[500], letterSpacing: 0.8)),
+            const SizedBox(height: 8),
+            _infoRow(Icons.badge_outlined, 'Officer', '$_deviceHostname ($_deviceHostcode)'),
+            _infoRow(Icons.apartment_outlined, 'Unit', _deviceUnitname),
+            const SizedBox(height: 12),
+            Text('DEVICE STATUS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[500], letterSpacing: 0.8)),
+            const SizedBox(height: 8),
+            _infoRow(
+              _signalType == 'mobile_signal' ? Icons.signal_cellular_alt : Icons.wifi,
+              'Signal',
+              '${_signalType == 'mobile_signal' ? 'Mobile' : 'WiFi'} · Strength $_signalStrength/5',
+            ),
+            _infoRow(Icons.my_location_outlined, 'Device Location', '$_deviceLat, $_deviceLng'),
+            _infoRow(Icons.videocam_outlined, 'Device ID', _deviceHostbody),
+            _infoRow(Icons.confirmation_number_outlined, 'IMEI', _deviceImei),
+            _infoRow(Icons.sim_card_outlined, 'SIM Number', _deviceMobile),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showAuditLog() {
@@ -503,10 +570,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Expanded(
             child: _buildStatCard(
-              icon: Icons.videocam,
-              label: 'Recordings Today',
+              icon: Icons.info_outline,
+              label: 'Device Info',
               value: '',
               color: const Color(0xFF1A3A6B),
+              onTap: _showDeviceInfoSheet,
             ),
           ),
           const SizedBox(width: 12),
@@ -537,8 +605,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String label,
     required String value,
     required Color color,
+    VoidCallback? onTap,
   }) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -570,6 +639,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
             style: const TextStyle(
               fontSize: 10,
               color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (onTap == null) return card;
+    return GestureDetector(onTap: onTap, child: card);
+  }
+
+  // Widget _buildDeviceInfoCard() {
+  //   if (_deviceHostname.isEmpty) return const SizedBox.shrink();
+  //   return Container(
+  //     margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+  //     padding: const EdgeInsets.all(16),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(16),
+  //       boxShadow: [
+  //         BoxShadow(color: Colors.grey.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 3)),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Row(
+  //           children: [
+  //             Icon(Icons.info_outline, color: Color(0xFF1A3A6B), size: 18),
+  //             SizedBox(width: 8),
+  //             Text('Device Info', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0A1628))),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 12),
+  //         _infoRow(Icons.badge_outlined, 'Officer', '$_deviceHostname ($_deviceHostcode)'),
+  //         _infoRow(Icons.apartment_outlined, 'Unit', _deviceUnitname),
+  //         _infoRow(
+  //           _signalType == 'mobile_signal' ? Icons.signal_cellular_alt : Icons.wifi,
+  //           'Signal',
+  //           '${_signalType == 'mobile_signal' ? 'Mobile' : 'WiFi'} · Strength $_signalStrength/5',
+  //         ),
+  //         _infoRow(Icons.my_location_outlined, 'Device Location', '$_deviceLat, $_deviceLng'),
+  //         _infoRow(Icons.videocam_outlined, 'Device ID', _deviceHostbody),
+  //         _infoRow(Icons.confirmation_number_outlined, 'IMEI', _deviceImei),
+  //         _infoRow(Icons.sim_card_outlined, 'SIM Number', _deviceMobile),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.grey[500]),
+          const SizedBox(width: 8),
+          Text('$label: ', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF0A1628)),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

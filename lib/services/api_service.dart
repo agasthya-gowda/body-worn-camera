@@ -127,16 +127,26 @@ class ApiService {
   }
 
   // ---------------- DEVICE DETAIL INQUIRY (battery, storage, signal) ----------------
-  Future<Map<String, dynamic>> getDeviceDetail(String imei, String hostbody) async {
+  // Per doc Section 5, item 22 "User info inquiry": POST /rest/gis/gismoni/get_devicedetail
+  // Body: {"ids": ["<device_sn>", ...]}  -- array of device SN (did/hostbody values), NOT imei
+  // Note: pe_signals omitted per vendor's confirmation (internal use only)
+  // Corrected from an earlier version that incorrectly sent {imei, hostbody} -
+  // that shape does not match the doc and would fail against the real server.
+  Future<Map<String, dynamic>> getDeviceDetail(List<String> deviceIds) async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/rest/gis/gismoni/get_devicedetail"),
         headers: _authHeaders(),
-        body: jsonEncode({"imei": imei, "hostbody": hostbody}),
+        body: jsonEncode({"ids": deviceIds}),
       );
-      return jsonDecode(response.body);
+      final result = jsonDecode(response.body);
+      return {
+        "code": result['code'],
+        "msg": result['msg'],
+        "data": List<Map<String, dynamic>>.from(result['data'] ?? []),
+      };
     } catch (e) {
-      return {"code": 500, "msg": "Connection error: $e"};
+      return {"code": 500, "msg": "Connection error: $e", "data": <Map<String, dynamic>>[]};
     }
   }
 
@@ -531,6 +541,96 @@ class ApiService {
         Uri.parse("$baseUrl/rest/gis/gismessagesendlist/messglist"),
         headers: _authHeaders(),
         body: jsonEncode(body),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- REAL-TIME LOCATION (GPS Tracking) ----------------
+  // Per doc Section 7.2: POST /rest/gis/gismoni/get_point
+  // Body: {"ids": ["T060039", ...]}  -- device SN (hostbody/did values, NOT imei)
+  // Response data: [{id, lat, lng, name}]
+  // Note: pe_signals omitted per vendor's confirmation (internal use only)
+  Future<Map<String, dynamic>> getRealtimeLocation(List<String> deviceIds) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismoni/get_point"),
+        headers: _authHeaders(),
+        body: jsonEncode({"ids": deviceIds}),
+      );
+      final result = jsonDecode(response.body);
+      return {
+        "code": result['code'],
+        "msg": result['msg'],
+        "data": List<Map<String, dynamic>>.from(result['data'] ?? []),
+      };
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e", "data": <Map<String, dynamic>>[]};
+    }
+  }
+
+  // ---------------- GPS HISTORY (Route Playback) ----------------
+  // Per doc Section 7.1: POST /rest/gis/gishistory/history
+  // Body: {"history_hostbody": "...", "start_in": "<unix_ts>", "end_in": "<unix_ts>"}
+  // Response data: { measure: {walk, bike, car}, gpsarray: [{deviceid, id, lat, lng, islbs, gpstime, speed}] }
+  // Note: pe_signals omitted per vendor's confirmation
+  Future<Map<String, dynamic>> getGpsHistory({
+    required String historyHostbody,
+    required String startIn,
+    required String endIn,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gishistory/history"),
+        headers: _authHeaders(),
+        body: jsonEncode({
+          "history_hostbody": historyHostbody,
+          "start_in": startIn,
+          "end_in": endIn,
+        }),
+      );
+      final result = jsonDecode(response.body);
+      return {
+        "code": result['code'],
+        "msg": result['msg'],
+        "data": result['data'] ?? {},
+      };
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e", "data": {}};
+    }
+  }
+
+  // ---------------- REMOTE KICKOFF (Photo / Video Trigger) ----------------
+  // Per doc Section 5, item 20 "Remote kickoff": POST /rest/gis/gismoni/send_cmd
+  // Same endpoint as mute/unmute (item 19), different "type" values:
+  //   "takephoto"  -> triggers the device to capture a photo remotely
+  //   "startvideo" -> triggers the device to start recording remotely
+  // Note: pe_signals omitted per vendor's confirmation (internal use only)
+  Future<Map<String, dynamic>> remoteKickoff(String imei, String type) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismoni/send_cmd"),
+        headers: _authHeaders(),
+        body: jsonEncode({"imei": imei, "type": type}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- REMOTE RESTART ----------------
+  // Per doc Section 5, item 21 "Remote restart": POST /rest/gis/gismoni/send_restart
+  // Different endpoint from send_cmd - requires BOTH imei and hostbody
+  // Note: pe_signals omitted per vendor's confirmation (internal use only)
+  Future<Map<String, dynamic>> remoteRestart(String imei, String hostbody) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/gis/gismoni/send_restart"),
+        headers: _authHeaders(),
+        body: jsonEncode({"imei": imei, "hostbody": hostbody}),
       );
       return jsonDecode(response.body);
     } catch (e) {

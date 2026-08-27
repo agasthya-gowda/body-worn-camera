@@ -83,6 +83,63 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
     }
   }
 
+  Future<void> _takeRemotePhoto() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Capturing photo...'), duration: Duration(seconds: 1)),
+    );
+    final result = await _apiService.remoteKickoff(_imei, "takephoto");
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['code'] == 200 ? 'Photo captured' : 'Failed: ${result['msg']}'),
+        backgroundColor: result['code'] == 200 ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
+  Future<void> _startRemoteVideo() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Starting remote recording...'), duration: Duration(seconds: 1)),
+    );
+    final result = await _apiService.remoteKickoff(_imei, "startvideo");
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['code'] == 200 ? 'Remote recording started' : 'Failed: ${result['msg']}'),
+        backgroundColor: result['code'] == 200 ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
+  Future<void> _confirmRestart() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Restart Device'),
+        content: const Text('This will remotely restart the camera. The live stream will be interrupted. Continue?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text('Restart'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final result = await _apiService.remoteRestart(_imei, _hostbody);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['code'] == 200 ? 'Restart command sent' : 'Failed: ${result['msg']}'),
+        backgroundColor: result['code'] == 200 ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
   void _updateTime() {
     final now = DateTime.now();
     setState(() {
@@ -102,7 +159,7 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
         title: const Text('Live View'),
         actions: [
           Container(
-            margin: const EdgeInsets.only(right: 16),
+            margin: const EdgeInsets.only(right: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: Colors.red,
@@ -116,6 +173,24 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
                 fontSize: 12,
               ),
             ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) {
+              if (value == 'restart') _confirmRestart();
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'restart',
+                child: Row(
+                  children: [
+                    Icon(Icons.restart_alt, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Text('Restart Device', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -203,6 +278,24 @@ class _LiveViewScreenState extends State<LiveViewScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildControlButton(
+                      icon: Icons.camera_alt_outlined,
+                      label: 'Photo',
+                      color: Colors.white,
+                      onTap: _takeRemotePhoto,
+                    ),
+                    _buildControlButton(
+                      icon: Icons.videocam_outlined,
+                      label: 'Remote Rec',
+                      color: Colors.white,
+                      onTap: _startRemoteVideo,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
