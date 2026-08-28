@@ -708,7 +708,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStorageCard() {
-    final usedPercent = _storageUsed / _storageTotal;
+    final usedPercent = _storageTotal > 0 ? _storageUsed / _storageTotal : 0.0;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       padding: const EdgeInsets.all(16),
@@ -744,7 +744,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               Text(
-                ' /  GB',
+                '${_storageUsed.toStringAsFixed(1)} / ${_storageTotal.toStringAsFixed(1)} GB',
                 style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 12,
@@ -766,7 +766,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            ' GB free',
+            '${(_storageTotal - _storageUsed).toStringAsFixed(1)} GB free',
             style: TextStyle(
               color: usedPercent > 0.8 ? Colors.red : Colors.grey,
               fontSize: 12,
