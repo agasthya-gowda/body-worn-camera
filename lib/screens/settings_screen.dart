@@ -7,6 +7,7 @@ import 'officer_list_screen.dart';
 import 'messages_list_screen.dart';
 import 'message_history_screen.dart';
 import 'live_tracking_screen.dart';
+import 'device_list_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -224,6 +225,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const LiveTrackingScreen()),
+                );
+              },
+            ),
+            _buildDivider(),
+            _buildNavigationTile(
+              icon: Icons.videocam_outlined,
+              label: 'Manage Devices',
+              subtitle: 'Add, edit, or remove camera devices',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const DeviceListScreen()),
                 );
               },
             ),

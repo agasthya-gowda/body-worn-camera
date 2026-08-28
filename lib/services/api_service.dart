@@ -638,5 +638,134 @@ class ApiService {
     }
   }
 
+  // ---------------- ADD DEVICE ----------------
+  // Per doc Section 6, item 23: POST /rest/device/device/add
+  // Note: pe_signals omitted per vendor's confirmation (internal use only)
+  Future<Map<String, dynamic>> addDevice({
+    required String bh,
+    required String hostbody,
+    required String recorderType, // "0" = normal, "1" = live streaming
+    required String typesn,       // device model ID
+    String? productFirm,
+    String? capacity,
+    String? version,
+    // NOTE: officerName is NOT part of the vendor doc - the API has
+    // no field to bind an officer to a device. Sent as an extra local-only field
+    // for our mock server; harmless to include, real server will just ignore it.
+    String? officerName,
+  }) async {
+    try {
+      Map<String, dynamic> body = {
+        "bh": bh,
+        "hostbody": hostbody,
+        "recorder_type": recorderType,
+        "typesn": typesn,
+      };
+      if (productFirm != null) body['product_firm'] = productFirm;
+      if (capacity != null) body['capacity'] = capacity;
+      if (version != null) body['version'] = version;
+      if (officerName != null) body['officer_name'] = officerName;
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/add"),
+        headers: _authHeaders(),
+        body: jsonEncode(body),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- ALL DEVICE LIST ----------------
+  // Per doc Section 6, item 25: POST /rest/device/device/devicelist
+  // Note: pe_signals omitted per vendor's confirmation
+  Future<Map<String, dynamic>> getAllDevices({
+    String? hostkey,
+    String? hostbody,
+    String? bh,
+    String? state, // "" = all, "0"-normal, "1"-fail, "2"-obsolete, "3"-stopped
+    String? devicetype,
+    int pageSize = 20,
+    int curPage = 1,
+  }) async {
+    try {
+      Map<String, dynamic> body = {
+        "page_size": pageSize,
+        "cur_page": curPage,
+      };
+      if (hostkey != null) body['hostkey'] = hostkey;
+      if (hostbody != null) body['hostbody'] = hostbody;
+      if (bh != null) body['bh'] = bh;
+      if (state != null) body['state'] = state;
+      if (devicetype != null) body['devicetype'] = devicetype;
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/devicelist"),
+        headers: _authHeaders(),
+        body: jsonEncode(body),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e", "data": {}};
+    }
+  }
+
+  // ---------------- MODIFY DEVICE ----------------
+  // Per doc Section 6, item 26: POST /rest/device/device/saveedit
+  // Note: pe_signals omitted per vendor's confirmation
+  Future<Map<String, dynamic>> modifyDevice({
+    required String id,
+    required String bh,
+    required String recorderType,
+    required String typesn,
+    String? productFirm,
+    String? capacity,
+    String? version,
+    // NOTE: officerName and hostbody are NOT part of the vendor doc's Modify Device spec -
+    // local-only fields until we confirm the real server's actual capabilities.
+    String? officerName,
+    String? hostbody,
+  }) async {
+    try {
+      Map<String, dynamic> body = {
+        "id": id,
+        "bh": bh,
+        "recorder_type": recorderType,
+        "typesn": typesn,
+      };
+      if (productFirm != null) body['product_firm'] = productFirm;
+      if (capacity != null) body['capacity'] = capacity;
+      if (version != null) body['version'] = version;
+      if (officerName != null) body['officer_name'] = officerName;
+      if (hostbody != null) body['hostbody'] = hostbody;
+
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/saveedit"),
+        headers: _authHeaders(),
+        body: jsonEncode(body),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
+  // ---------------- DELETE DEVICE ----------------
+  // Per doc Section 6, item 27: POST /rest/device/device/del
+  // Note: pe_signals omitted per vendor's confirmation
+  Future<Map<String, dynamic>> deleteDevice(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/rest/device/device/del"),
+        headers: _authHeaders(),
+        body: jsonEncode({"id": id}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"code": 500, "msg": "Connection error: $e"};
+    }
+  }
+
   bool get isLoggedIn => _sessionCookie != null;
 }
