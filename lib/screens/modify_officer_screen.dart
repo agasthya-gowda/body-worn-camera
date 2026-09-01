@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 
 class ModifyOfficerScreen extends StatefulWidget {
   final Map<String, dynamic> officer;
@@ -24,6 +25,8 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
   late TextEditingController _noteController;
 
   bool _isSubmitting = false;
+
+  bool get _isDark => AppTheme.isDark(context);
 
   @override
   void initState() {
@@ -74,10 +77,10 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
       context: context,
       barrierColor: Colors.black.withOpacity(0.75),
       builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF334155)),
+          side: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -91,19 +94,19 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
                 child: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 26),
               ),
               const SizedBox(height: 12),
-              const Text('Delete Officer Record?',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Delete Officer Record?',
+                  style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 6),
               Text.rich(
                 TextSpan(
                   children: [
-                    const TextSpan(text: 'Are you sure you want to remove ', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    TextSpan(text: 'Are you sure you want to remove ', style: TextStyle(color: _isDark ? Colors.white54 : Colors.grey[700], fontSize: 12)),
                     TextSpan(
                         text: widget.officer['realname'] ?? 'this officer',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                        style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontWeight: FontWeight.bold, fontSize: 12)),
                     TextSpan(
                         text: ' (#${widget.officer['hostcode']}) from the active registry?',
-                        style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        style: TextStyle(color: _isDark ? Colors.white54 : Colors.grey[700], fontSize: 12)),
                   ],
                 ),
                 textAlign: TextAlign.center,
@@ -115,11 +118,11 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
                     child: TextButton(
                       onPressed: () => Navigator.pop(context, false),
                       style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E293B),
+                        backgroundColor: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                      child: Text('Cancel', style: TextStyle(color: _isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w600)),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -175,23 +178,30 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
   }
 
   InputDecoration _fieldDecoration(String label, IconData icon, {bool required = false, bool enabled = true}) {
+    final Color mutedText = _isDark ? Colors.white54 : Colors.grey[700]!;
+    final Color faintText = _isDark ? Colors.white24 : Colors.grey[400]!;
+    final Color iconMuted = _isDark ? Colors.white38 : Colors.grey[500]!;
+    final Color border = _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final Color disabledBorderColor = _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
     return InputDecoration(
       labelText: required ? '$label *' : label,
-      labelStyle: TextStyle(color: enabled ? Colors.white54 : Colors.white24, fontSize: 12),
-      prefixIcon: Icon(icon, color: enabled ? Colors.white38 : Colors.white24, size: 18),
+      labelStyle: TextStyle(color: enabled ? mutedText : faintText, fontSize: 12),
+      prefixIcon: Icon(icon, color: enabled ? iconMuted : faintText, size: 18),
       filled: true,
-      fillColor: enabled ? const Color(0xFF020617) : const Color(0xFF0F172A),
+      fillColor: enabled
+          ? (_isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC))
+          : (_isDark ? const Color(0xFF0F172A) : Colors.white),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF334155)),
+        borderSide: BorderSide(color: border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF334155)),
+        borderSide: BorderSide(color: border),
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF1E293B)),
+        borderSide: BorderSide(color: disabledBorderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -204,16 +214,16 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
             // ---- Top App Bar ----
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
@@ -223,10 +233,10 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Modify Officer',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('Modify Officer',
+                            style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontWeight: FontWeight.bold, fontSize: 15)),
                         Text('ID: ${widget.officer['id']} • #${widget.officer['hostcode']}',
-                            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                            style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 11)),
                       ],
                     ),
                   ),
@@ -244,29 +254,29 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
                   children: [
                     TextFormField(
                       initialValue: widget.officer['hostcode'] ?? '',
-                      style: const TextStyle(color: Colors.white38, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 13),
                       decoration: _fieldDecoration('Badge Code (cannot be changed)', Icons.tag, enabled: false),
                       enabled: false,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _realnameController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: _fieldDecoration('Full Name (realname)', Icons.person_outline, required: true),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _bhController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: _fieldDecoration('Unit Name (bh)', Icons.apartment, required: true),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedType,
-                      dropdownColor: const Color(0xFF0F172A),
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      dropdownColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: _fieldDecoration('Police Rank (type)', Icons.shield_outlined, required: true),
                       items: widget.userTypes.entries
                           .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value.toString())))
@@ -280,7 +290,7 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _mobileController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                             decoration: _fieldDecoration('Mobile', Icons.phone_iphone),
                             keyboardType: TextInputType.phone,
                           ),
@@ -289,7 +299,7 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _telController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                             decoration: _fieldDecoration('Tel', Icons.call),
                             keyboardType: TextInputType.phone,
                           ),
@@ -299,14 +309,14 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _sortController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: _fieldDecoration('Sort Order', Icons.sort),
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _noteController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: _fieldDecoration('Notes', Icons.notes),
                       maxLines: 3,
                     ),
@@ -356,8 +366,13 @@ class _HoverIconButton extends StatefulWidget {
 class _HoverIconButtonState extends State<_HoverIconButton> {
   bool _isHovered = false;
 
+  bool get _isDark => AppTheme.isDark(context);
+
   @override
   Widget build(BuildContext context) {
+    final Color border = _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final Color base = _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+    final Color hover = _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -368,11 +383,11 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            color: _isHovered ? hover : base,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF334155)),
+            border: Border.all(color: border),
           ),
-          child: Icon(widget.icon, color: Colors.white70, size: 18),
+          child: Icon(widget.icon, color: _isDark ? Colors.white70 : Colors.black87, size: 18),
         ),
       ),
     );

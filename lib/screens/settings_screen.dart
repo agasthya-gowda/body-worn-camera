@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 
-const _kBg = Color(0xFF0A1628);
-const _kSurface = Color(0xFF0F172A);
-const _kBorder = Color(0xFF1E293B);
+const _kBgDark = Color(0xFF0A1628);
+const _kSurfaceDark = Color(0xFF0F172A);
+const _kBorderDark = Color(0xFF1E293B);
+
+const _kBgLight = Color(0xFFF1F5F9);
+const _kSurfaceLight = Colors.white;
+const _kBorderLight = Color(0xFFE2E8F0);
+
 const _kBlue600 = Color(0xFF2563EB);
 const _kBlue400 = Color(0xFF60A5FA);
 const _kRose600 = Color(0xFFE11D48);
@@ -18,6 +24,7 @@ class _PillSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
@@ -27,7 +34,7 @@ class _PillSwitch extends StatelessWidget {
         padding: const EdgeInsets.all(2),
         alignment: value ? Alignment.centerRight : Alignment.centerLeft,
         decoration: BoxDecoration(
-          color: value ? _kBlue600 : const Color(0xFF334155),
+          color: value ? _kBlue600 : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Container(
@@ -60,6 +67,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _recordingQuality = '1080p';
   String _username = '';
 
+  bool get _isDark => AppTheme.isDark(context);
+
   @override
   void initState() {
     super.initState();
@@ -88,20 +97,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _logout() async {
+    final isDark = _isDark;
+    final surface = isDark ? _kSurfaceDark : _kSurfaceLight;
+    final border = isDark ? _kBorderDark : _kBorderLight;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0A1628);
+    final textSecondary = isDark ? Colors.white70 : Colors.black87;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: _kSurface,
+        backgroundColor: surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: _kBorder),
+          side: BorderSide(color: border),
         ),
-        title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
-        content: const Text('Are you sure you want to sign out?', style: TextStyle(color: Colors.white70)),
+        title: Text('Sign Out', style: TextStyle(color: textPrimary)),
+        content: Text('Are you sure you want to sign out?', style: TextStyle(color: textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: Text('Cancel', style: TextStyle(color: textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -130,27 +145,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    final bg = isDark ? _kBgDark : _kBgLight;
+    final surface = isDark ? _kSurfaceDark : _kSurfaceLight;
+    final border = isDark ? _kBorderDark : _kBorderLight;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0A1628);
+    final textFaint = isDark ? Colors.white38 : Colors.grey[500];
+
     return Scaffold(
-      backgroundColor: _kBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: _kSurface,
-                border: Border(bottom: BorderSide(color: _kBorder)),
+              decoration: BoxDecoration(
+                color: surface,
+                border: Border(bottom: BorderSide(color: border)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('System Settings',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                            style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
                         Text('Application & Telemetry Preferences',
-                            style: TextStyle(color: Colors.white38, fontSize: 11)),
+                            style: TextStyle(color: textFaint, fontSize: 11)),
                       ],
                     ),
                   ),
@@ -261,29 +283,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 14),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _kSurface.withOpacity(0.6),
+                      color: surface.withOpacity(isDark ? 0.6 : 1),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: _kBorder.withOpacity(0.8)),
+                      border: Border.all(color: border.withOpacity(isDark ? 0.8 : 1)),
                     ),
                     child: Column(
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.verified_user_outlined, size: 16, color: _kBlue400),
-                            SizedBox(width: 6),
+                          children: [
+                            const Icon(Icons.verified_user_outlined, size: 16, color: _kBlue400),
+                            const SizedBox(width: 6),
                             Text('BWC Mobile Law Enforcement Portal',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white70)),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white70 : Colors.black87)),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        const Text('Build v1.0.0',
-                            style: TextStyle(fontSize: 11, color: Colors.white38, fontFamily: 'monospace')),
+                        Text('Build v1.0.0',
+                            style: TextStyle(fontSize: 11, color: textFaint, fontFamily: 'monospace')),
                         const SizedBox(height: 6),
-                        const Text(
+                        Text(
                           'ChipScape Police Dept • Real-time Body Worn Camera Fleet Management',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 10, color: Colors.white38),
+                          style: TextStyle(fontSize: 10, color: textFaint),
                         ),
                       ],
                     ),
@@ -320,13 +345,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildProfileCard() {
+    final isDark = _isDark;
+    final surface = isDark ? _kSurfaceDark : _kSurfaceLight;
+    final border = isDark ? _kBorderDark : _kBorderLight;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0A1628);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _kSurface,
+        color: surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _kBorder),
+        border: Border.all(color: border),
       ),
       child: Row(
         children: [
@@ -351,7 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Text(
                 _username,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 2),
               const Text(
@@ -370,10 +400,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.bold,
-          color: Colors.white38,
+          color: _isDark ? Colors.white38 : Colors.grey[500],
           letterSpacing: 0.6,
         ),
       ),
@@ -381,12 +411,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSettingsCard(List<Widget> children) {
+    final isDark = _isDark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: _kSurface,
+        color: isDark ? _kSurfaceDark : _kSurfaceLight,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _kBorder),
+        border: Border.all(color: isDark ? _kBorderDark : _kBorderLight),
       ),
       child: Column(children: children),
     );
@@ -412,15 +443,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final isDark = _isDark;
     return ListTile(
       leading: _buildIconBadge(icon),
       title: Text(
         label,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : const Color(0xFF0A1628)),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 12, color: Colors.white38),
+        style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.grey[500]),
       ),
       trailing: _PillSwitch(value: value, onChanged: onChanged),
     );
@@ -432,20 +464,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final isDark = _isDark;
     return ListTile(
       onTap: onTap,
       leading: _buildIconBadge(icon),
       title: Text(
         label,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : const Color(0xFF0A1628)),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 12, color: Colors.white38),
+        style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.grey[500]),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right,
-        color: Colors.white38,
+        color: isDark ? Colors.white38 : Colors.grey[500],
       ),
     );
   }
@@ -457,18 +490,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required List<String> options,
     required ValueChanged<String?> onChanged,
   }) {
+    final isDark = _isDark;
     return ListTile(
       leading: _buildIconBadge(icon),
       title: Text(
         label,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : const Color(0xFF0A1628)),
       ),
       trailing: DropdownButton<String>(
         value: value,
         underline: const SizedBox(),
-        dropdownColor: _kSurface,
-        style: const TextStyle(color: Colors.white, fontSize: 13),
-        icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white38),
+        dropdownColor: isDark ? _kSurfaceDark : _kSurfaceLight,
+        style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
+        icon: Icon(Icons.keyboard_arrow_down, color: isDark ? Colors.white38 : Colors.grey[500]),
         items: options.map((option) {
           return DropdownMenuItem(
             value: option,
@@ -481,6 +515,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDivider() {
-    return const Divider(height: 1, indent: 68, color: _kBorder);
+    return Divider(height: 1, indent: 68, color: _isDark ? _kBorderDark : _kBorderLight);
   }
 }

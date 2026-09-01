@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 
 class AddOfficerScreen extends StatefulWidget {
   final Map<String, dynamic> userTypes;
@@ -24,6 +25,10 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    final hoverColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+    final iconColor = isDark ? Colors.white : const Color(0xFF0A1628);
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -34,11 +39,11 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            color: _isHovered ? hoverColor : borderColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF334155)),
+            border: Border.all(color: borderColor),
           ),
-          child: Icon(widget.icon, color: Colors.white, size: 18),
+          child: Icon(widget.icon, color: iconColor, size: 18),
         ),
       ),
     );
@@ -59,6 +64,8 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
 
   String? _selectedType;
   bool _isSubmitting = false;
+
+  bool get _isDark => AppTheme.isDark(context);
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
@@ -109,19 +116,20 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
   }
 
   InputDecoration _fieldDecoration(String label, IconData icon, {bool required = false}) {
+    final borderColor = _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     return InputDecoration(
       labelText: required ? '$label *' : label,
-      labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
-      prefixIcon: Icon(icon, color: Colors.white38, size: 18),
+      labelStyle: TextStyle(color: _isDark ? Colors.white54 : Colors.grey[700], fontSize: 12),
+      prefixIcon: Icon(icon, color: _isDark ? Colors.white38 : Colors.grey[500], size: 18),
       filled: true,
-      fillColor: const Color(0xFF020617),
+      fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF334155)),
+        borderSide: BorderSide(color: borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF334155)),
+        borderSide: BorderSide(color: borderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -133,28 +141,34 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9);
+    final surfaceColor = _isDark ? const Color(0xFF0F172A) : Colors.white;
+    final borderColor = _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+    final primaryTextColor = _isDark ? Colors.white : const Color(0xFF0A1628);
+    final mutedTextColor = _isDark ? Colors.white38 : Colors.grey[500];
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                border: Border(bottom: BorderSide(color: borderColor)),
               ),
               child: Row(
                 children: [
                   _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
                   const SizedBox(width: 12),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Add New Officer',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                          style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold, fontSize: 15)),
                       Text('Personnel Enrollment (Multipart Form)',
-                          style: TextStyle(color: Colors.white38, fontSize: 11)),
+                          style: TextStyle(color: mutedTextColor, fontSize: 11)),
                     ],
                   ),
                 ],
@@ -168,29 +182,29 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
                   children: [
                     TextFormField(
                       controller: _hostcodeController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: primaryTextColor, fontSize: 13),
                       decoration: _fieldDecoration('Badge / Hostcode', Icons.tag, required: true),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _realnameController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: primaryTextColor, fontSize: 13),
                       decoration: _fieldDecoration('Full Name (realname)', Icons.person_outline, required: true),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _bhController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: primaryTextColor, fontSize: 13),
                       decoration: _fieldDecoration('Unit Name (bh)', Icons.apartment, required: true),
                       validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedType,
-                      dropdownColor: const Color(0xFF0F172A),
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      dropdownColor: surfaceColor,
+                      style: TextStyle(color: primaryTextColor, fontSize: 13),
                       decoration: _fieldDecoration('Police Rank (type)', Icons.shield_outlined, required: true),
                       items: widget.userTypes.entries
                           .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value.toString())))
@@ -204,7 +218,7 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _mobileController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: TextStyle(color: primaryTextColor, fontSize: 13),
                             decoration: _fieldDecoration('Mobile (optional)', Icons.phone_iphone),
                             keyboardType: TextInputType.phone,
                           ),
@@ -213,7 +227,7 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _telController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: TextStyle(color: primaryTextColor, fontSize: 13),
                             decoration: _fieldDecoration('Tel (optional)', Icons.call),
                             keyboardType: TextInputType.phone,
                           ),
@@ -223,14 +237,14 @@ class _AddOfficerScreenState extends State<AddOfficerScreen> {
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _sortController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: primaryTextColor, fontSize: 13),
                       decoration: _fieldDecoration('Display Sort Order', Icons.sort),
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _noteController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: primaryTextColor, fontSize: 13),
                       decoration: _fieldDecoration('Officer Notes (optional)', Icons.notes),
                       maxLines: 3,
                     ),

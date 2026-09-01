@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 import 'location_history_screen.dart';
 
 class LiveTrackingScreen extends StatefulWidget {
@@ -24,6 +25,8 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
   String _lastUpdated = '';
 
   static const LatLng _defaultCenter = LatLng(12.9716, 77.5946);
+
+  bool get _isDark => AppTheme.isDark(context);
 
   @override
   void initState() {
@@ -104,11 +107,11 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.85),
+          color: _isDark ? Colors.black.withOpacity(0.85) : Colors.white.withOpacity(0.9),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF1E293B)),
+          border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
         ),
-        child: Icon(icon, color: Colors.white, size: 16),
+        child: Icon(icon, color: _isDark ? Colors.white : const Color(0xFF0A1628), size: 16),
       ),
     );
   }
@@ -125,15 +128,15 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
@@ -142,11 +145,11 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF334155)),
+                        border: Border.all(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
+                      child: Icon(Icons.arrow_back, color: _isDark ? Colors.white : const Color(0xFF0A1628), size: 18),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -156,8 +159,11 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                       children: [
                         Row(
                           children: [
-                            const Text('Live GPS Tracking',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text('Live GPS Tracking',
+                                style: TextStyle(
+                                    color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15)),
                             const SizedBox(width: 6),
                             Container(
                               width: 8,
@@ -167,7 +173,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                           ],
                         ),
                         Text('5s Polling • Updated $_lastUpdated',
-                            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                            style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 11)),
                       ],
                     ),
                   ),
@@ -241,14 +247,16 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF0A1628),
+                                            color: _isDark ? const Color(0xFF0A1628) : Colors.white,
                                             borderRadius: BorderRadius.circular(6),
                                             border: Border.all(color: const Color(0xFF4A9EFF).withOpacity(0.4)),
                                           ),
                                           child: Text(
                                             name,
-                                            style: const TextStyle(
-                                                color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                                            style: TextStyle(
+                                                color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -267,9 +275,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.8),
+                              color: _isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFF1E293B)),
+                              border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,8 +295,8 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 3),
-                                const Text('Tap any marker to inspect historical route',
-                                    style: TextStyle(color: Colors.white38, fontSize: 9)),
+                                Text('Tap any marker to inspect historical route',
+                                    style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 9)),
                               ],
                             ),
                           ),
@@ -316,21 +324,25 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
             Container(
               constraints: const BoxConstraints(maxHeight: 220),
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(top: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(top: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('ACTIVE FIELD UNITS IN SECTOR',
+                  Text('ACTIVE FIELD UNITS IN SECTOR',
                       style: TextStyle(
-                          color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                          color: _isDark ? Colors.white38 : Colors.grey[500],
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8)),
                   const SizedBox(height: 8),
                   Expanded(
                     child: _locations.isEmpty
-                        ? const Center(
-                            child: Text('No active units', style: TextStyle(color: Colors.white38, fontSize: 12)))
+                        ? Center(
+                            child: Text('No active units',
+                                style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)))
                         : ListView.builder(
                             itemCount: _locations.length,
                             itemBuilder: (context, index) {
@@ -343,9 +355,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                                   margin: const EdgeInsets.only(bottom: 8),
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF020617),
+                                    color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFF1E293B)),
+                                    border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
                                   ),
                                   child: Row(
                                     children: [
@@ -365,8 +377,10 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text('$name (BWC-$deviceId)',
-                                                style: const TextStyle(
-                                                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                                style: TextStyle(
+                                                    color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12),
                                                 overflow: TextOverflow.ellipsis),
                                             const SizedBox(height: 2),
                                             const Row(

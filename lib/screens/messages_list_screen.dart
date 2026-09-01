@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 
 class MessagesListScreen extends StatefulWidget {
   const MessagesListScreen({super.key});
@@ -20,6 +21,8 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
   String? _webRoot;
   bool _isLoading = true;
   Timer? _debounceTimer;
+
+  bool get _isDark => AppTheme.isDark(context);
 
   @override
   void initState() {
@@ -68,11 +71,11 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
       context: context,
       barrierColor: Colors.black.withOpacity(0.75),
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Template', style: TextStyle(color: Colors.white)),
+        title: Text('Delete Template', style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628))),
         content: Text('Delete "${message['title'] ?? 'this message'}"? This cannot be undone.',
-            style: const TextStyle(color: Colors.white70)),
+            style: TextStyle(color: _isDark ? Colors.white70 : Colors.black87)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           ElevatedButton(
@@ -113,7 +116,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheetContext) {
         return StatefulBuilder(
@@ -212,7 +215,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(isEditing ? 'Edit Dispatch' : 'Compose Dispatch',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _isDark ? Colors.white : const Color(0xFF0A1628))),
                           Row(
                             children: [
                               if (isEditing)
@@ -224,7 +227,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                   },
                                 ),
                               IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white70),
+                                icon: Icon(Icons.close, color: _isDark ? Colors.white70 : Colors.black87),
                                 onPressed: () => Navigator.pop(sheetContext),
                               ),
                             ],
@@ -234,14 +237,14 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: titleController,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                         decoration: _sheetFieldDecoration('Title', required: true),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: contentController,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                         decoration: _sheetFieldDecoration('Advisory Message Content', required: true),
                         maxLines: 4,
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -252,9 +255,9 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                         child: Container(
                           height: 150,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF020617),
+                            color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFF334155)),
+                            border: Border.all(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           child: pickedImageBytes != null
                               ? ClipRRect(
@@ -270,8 +273,8 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                           Image.network(
                                             (_webRoot ?? ApiService.baseUrl) + existingImageUrl,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) => const Center(
-                                              child: Icon(Icons.broken_image, color: Colors.white24, size: 36),
+                                            errorBuilder: (context, error, stackTrace) => Center(
+                                              child: Icon(Icons.broken_image, color: _isDark ? Colors.white24 : Colors.grey[400], size: 36),
                                             ),
                                           ),
                                           Positioned(
@@ -288,14 +291,14 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                         ],
                                       ),
                                     )
-                                  : const Center(
+                                  : Center(
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.add_photo_alternate, size: 32, color: Colors.white24),
-                                          SizedBox(height: 6),
+                                          Icon(Icons.add_photo_alternate, size: 32, color: _isDark ? Colors.white24 : Colors.grey[400]),
+                                          const SizedBox(height: 6),
                                           Text('Tap to select image *',
-                                              style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                              style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)),
                                         ],
                                       ),
                                     ),
@@ -345,7 +348,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheetContext) {
         return StatefulBuilder(
@@ -449,16 +452,16 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Select Recipients',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text('Select Recipients',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _isDark ? Colors.white : const Color(0xFF0A1628))),
                               Text('Broadcast: ${message['title'] ?? ''}',
-                                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                                  style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 11),
                                   overflow: TextOverflow.ellipsis),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70),
+                          icon: Icon(Icons.close, color: _isDark ? Colors.white70 : Colors.black87),
                           onPressed: () => Navigator.pop(sheetContext),
                         ),
                       ],
@@ -466,20 +469,20 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Search officer name or device ID',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
+                        hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12),
+                        prefixIcon: Icon(Icons.search, color: _isDark ? Colors.white38 : Colors.grey[500], size: 18),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                            borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                            borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(color: Color(0xFF9333EA), width: 1.5)),
                         filled: true,
-                        fillColor: const Color(0xFF020617),
+                        fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                       ),
                       onChanged: (_) => setSheetState(() {}),
                     ),
@@ -488,7 +491,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('${filtered.length} device(s)',
-                            style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                            style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)),
                         GestureDetector(
                           onTap: filtered.isEmpty ? null : toggleSelectAll,
                           child: Row(
@@ -510,8 +513,8 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                       child: isLoadingDevices
                           ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
                           : filtered.isEmpty
-                              ? const Center(
-                                  child: Text('No devices available', style: TextStyle(color: Colors.white38)))
+                              ? Center(
+                                  child: Text('No devices available', style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500])))
                               : ListView.builder(
                                   itemCount: filtered.length,
                                   itemBuilder: (context, index) {
@@ -535,17 +538,17 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                         decoration: BoxDecoration(
                                           color: isSelected
                                               ? const Color(0xFF9333EA).withOpacity(0.12)
-                                              : const Color(0xFF020617),
+                                              : (_isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC)),
                                           borderRadius: BorderRadius.circular(14),
                                           border: Border.all(
                                               color: isSelected
                                                   ? const Color(0xFF9333EA).withOpacity(0.5)
-                                                  : const Color(0xFF1E293B)),
+                                                  : (_isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
                                         ),
                                         child: Row(
                                           children: [
                                             Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-                                                size: 20, color: isSelected ? const Color(0xFFC084FC) : Colors.white38),
+                                                size: 20, color: isSelected ? const Color(0xFFC084FC) : (_isDark ? Colors.white38 : Colors.grey[500])),
                                             const SizedBox(width: 10),
                                             Expanded(
                                               child: Column(
@@ -554,8 +557,8 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                                   Row(
                                                     children: [
                                                       Text(device['hostname'] ?? 'Unknown Officer',
-                                                          style: const TextStyle(
-                                                              color: Colors.white,
+                                                          style: TextStyle(
+                                                              color: _isDark ? Colors.white : const Color(0xFF0A1628),
                                                               fontWeight: FontWeight.bold,
                                                               fontSize: 12)),
                                                       const SizedBox(width: 6),
@@ -583,14 +586,14 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                                   width: 6,
                                                   height: 6,
                                                   decoration: BoxDecoration(
-                                                    color: isOnline ? Colors.greenAccent : Colors.white24,
+                                                    color: isOnline ? Colors.greenAccent : (_isDark ? Colors.white24 : Colors.grey[400]),
                                                     shape: BoxShape.circle,
                                                   ),
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(isOnline ? 'ONLINE' : 'OFFLINE',
                                                     style: TextStyle(
-                                                        color: isOnline ? Colors.greenAccent : Colors.white38,
+                                                        color: isOnline ? Colors.greenAccent : (_isDark ? Colors.white38 : Colors.grey[500]),
                                                         fontSize: 9,
                                                         fontWeight: FontWeight.bold,
                                                         fontFamily: 'monospace')),
@@ -637,13 +640,13 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
   InputDecoration _sheetFieldDecoration(String label, {bool required = false}) {
     return InputDecoration(
       labelText: required ? '$label *' : label,
-      labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
+      labelStyle: TextStyle(color: _isDark ? Colors.white54 : Colors.black87, fontSize: 12),
       filled: true,
-      fillColor: const Color(0xFF020617),
+      fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF334155))),
+          borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF334155))),
+          borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFF9333EA), width: 1.5)),
@@ -654,27 +657,27 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
-                  _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
+                  _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context), isDark: _isDark),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Dispatch Messages',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text('Pre-defined Broadcast Advisories', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                            style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('Pre-defined Broadcast Advisories', style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 11)),
                       ],
                     ),
                   ),
@@ -684,6 +687,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                       icon: Icons.refresh,
                       onTap: _isLoading ? () {} : _loadMessages,
                       isLoading: _isLoading,
+                      isDark: _isDark,
                     ),
                   ),
                   _HoverComposeButton(onTap: () => _showComposeSheet()),
@@ -692,34 +696,34 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
             ),
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                 decoration: InputDecoration(
                   hintText: 'Search dispatch templates & tactical codes...',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                  prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
+                  hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12),
+                  prefixIcon: Icon(Icons.search, color: _isDark ? Colors.white38 : Colors.grey[500], size: 18),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF334155)),
+                    borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF334155)),
+                    borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Color(0xFF9333EA), width: 1.5),
                   ),
                   filled: true,
-                  fillColor: const Color(0xFF020617),
+                  fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.white38, size: 18),
+                          icon: Icon(Icons.clear, color: _isDark ? Colors.white38 : Colors.grey[500], size: 18),
                           onPressed: () {
                             _searchController.clear();
                             _loadMessages();
@@ -735,21 +739,21 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
                   : _messages.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.message_outlined, size: 40, color: Colors.white24),
-                              SizedBox(height: 8),
+                              Icon(Icons.message_outlined, size: 40, color: _isDark ? Colors.white24 : Colors.grey[400]),
+                              const SizedBox(height: 8),
                               Text('No matching dispatch templates found.',
-                                  style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                  style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)),
                             ],
                           ),
                         )
                       : RefreshIndicator(
                           onRefresh: _loadMessages,
                           color: const Color(0xFF4A9EFF),
-                          backgroundColor: const Color(0xFF0F172A),
+                          backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
                           child: ListView.builder(
                             padding: const EdgeInsets.all(14),
                             itemCount: _messages.length + 1,
@@ -761,14 +765,14 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text('AVAILABLE ADVISORIES (${_messages.length})',
-                                          style: const TextStyle(
-                                              color: Colors.white38,
+                                          style: TextStyle(
+                                              color: _isDark ? Colors.white38 : Colors.grey[500],
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               letterSpacing: 0.6)),
-                                      const Text('TAP TO DISPATCH',
+                                      Text('TAP TO DISPATCH',
                                           style: TextStyle(
-                                              color: Colors.white38,
+                                              color: _isDark ? Colors.white38 : Colors.grey[500],
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               letterSpacing: 0.6)),
@@ -784,6 +788,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                 padding: const EdgeInsets.only(bottom: 10),
                                 child: _HoverMessageCard(
                                   onTap: () => _showComposeSheet(existingMessage: message),
+                                  isDark: _isDark,
                                   child: Row(
                                     children: [
                                       Container(
@@ -802,22 +807,22 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(message['title'] ?? 'Untitled',
-                                                style: const TextStyle(
-                                                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                                style: TextStyle(
+                                                    color: _isDark ? Colors.white : const Color(0xFF0A1628), fontWeight: FontWeight.bold, fontSize: 13),
                                                 overflow: TextOverflow.ellipsis),
                                             const SizedBox(height: 3),
                                             Text(message['content'] ?? '',
-                                                style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                                style: TextStyle(color: _isDark ? Colors.white54 : Colors.black87, fontSize: 11),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis),
                                             const SizedBox(height: 4),
                                             Row(
                                               children: [
                                                 Text(typeLabel.toString(),
-                                                    style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                                    style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 10)),
                                                 if (isSent) ...[
                                                   const SizedBox(width: 6),
-                                                  const Text('•', style: TextStyle(color: Colors.white24, fontSize: 10)),
+                                                  Text('•', style: TextStyle(color: _isDark ? Colors.white24 : Colors.grey[400], fontSize: 10)),
                                                   const SizedBox(width: 6),
                                                   const Text('Sent',
                                                       style: TextStyle(
@@ -830,7 +835,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                           ],
                                         ),
                                       ),
-                                      _HoverDeleteIcon(onTap: () => _confirmDelete(message)),
+                                      _HoverDeleteIcon(onTap: () => _confirmDelete(message), isDark: _isDark),
                                       const SizedBox(width: 12),
                                       _HoverSendButton(onTap: () => _showSendSheet(message)),
                                     ],
@@ -852,7 +857,8 @@ class _HoverIconButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool isLoading;
-  const _HoverIconButton({required this.icon, required this.onTap, this.isLoading = false});
+  final bool isDark;
+  const _HoverIconButton({required this.icon, required this.onTap, this.isLoading = false, this.isDark = true});
 
   @override
   State<_HoverIconButton> createState() => _HoverIconButtonState();
@@ -863,6 +869,7 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = widget.isDark;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -873,14 +880,18 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            color: _isHovered
+                ? (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))
+                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF334155)),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           child: widget.isLoading
-              ? const SizedBox(
-                  width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70))
-              : Icon(widget.icon, color: Colors.white70, size: 18),
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: isDark ? Colors.white70 : Colors.black87))
+              : Icon(widget.icon, color: isDark ? Colors.white70 : Colors.black87, size: 18),
         ),
       ),
     );
@@ -931,7 +942,8 @@ class _HoverComposeButtonState extends State<_HoverComposeButton> {
 class _HoverMessageCard extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
-  const _HoverMessageCard({required this.child, required this.onTap});
+  final bool isDark;
+  const _HoverMessageCard({required this.child, required this.onTap, this.isDark = true});
 
   @override
   State<_HoverMessageCard> createState() => _HoverMessageCardState();
@@ -942,6 +954,7 @@ class _HoverMessageCardState extends State<_HoverMessageCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = widget.isDark;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -952,10 +965,12 @@ class _HoverMessageCardState extends State<_HoverMessageCard> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: _isHovered ? const Color(0xFF9333EA).withOpacity(0.5) : const Color(0xFF1E293B),
+              color: _isHovered
+                  ? const Color(0xFF9333EA).withOpacity(0.5)
+                  : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
             ),
           ),
           child: widget.child,
@@ -1000,7 +1015,8 @@ class _HoverSendButtonState extends State<_HoverSendButton> {
 
 class _HoverDeleteIcon extends StatefulWidget {
   final VoidCallback onTap;
-  const _HoverDeleteIcon({required this.onTap});
+  final bool isDark;
+  const _HoverDeleteIcon({required this.onTap, this.isDark = true});
 
   @override
   State<_HoverDeleteIcon> createState() => _HoverDeleteIconState();
@@ -1024,7 +1040,9 @@ class _HoverDeleteIconState extends State<_HoverDeleteIcon> {
             color: _isHovered ? const Color(0xFFF43F5E).withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(Icons.delete_outline, size: 19, color: _isHovered ? const Color(0xFFFB7185) : Colors.white38),
+          child: Icon(Icons.delete_outline,
+              size: 19,
+              color: _isHovered ? const Color(0xFFFB7185) : (widget.isDark ? Colors.white38 : Colors.grey[500])),
         ),
       ),
     );

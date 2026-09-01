@@ -1012,6 +1012,7 @@ import 'device_list_screen.dart';
 import 'messages_list_screen.dart';
 import 'message_history_screen.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 import 'dart:async';
 
 // ---- Restyled palette to match the "tactical fleet management" visual direction ----
@@ -1052,8 +1053,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final ApiService _apiService = ApiService();
   Timer? _heartbeatTimer;
 
-  // Visual-only theme toggle (local to this screen, no backend/logic impact)
-  bool _isDark = true;
+  // Visual-only theme toggle, shared app-wide via ThemeController (no backend/logic impact)
+  bool get _isDark => AppTheme.isDark(context);
 
   @override
   void initState() {
@@ -1576,7 +1577,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               _circleIconButton(
                 icon: _isDark ? Icons.dark_mode : Icons.light_mode,
-                onTap: () => setState(() => _isDark = !_isDark),
+                onTap: () => AppTheme.toggle(context),
               ),
               const SizedBox(height: 8),
               _circleIconButton(

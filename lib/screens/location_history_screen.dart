@@ -261,6 +261,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 
 class LocationHistoryScreen extends StatefulWidget {
   final String hostbody;
@@ -273,6 +274,8 @@ class LocationHistoryScreen extends StatefulWidget {
 }
 
 class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
+  bool get _isDark => AppTheme.isDark(context);
+
   final ApiService _apiService = ApiService();
   final MapController _mapController = MapController();
 
@@ -381,15 +384,15 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
@@ -398,11 +401,11 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF334155)),
+                        border: Border.all(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
+                      child: Icon(Icons.arrow_back, color: _isDark ? Colors.white : const Color(0xFF0A1628), size: 18),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -410,14 +413,17 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Location History',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('Location History',
+                            style: TextStyle(
+                                color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
                         Text.rich(
                           TextSpan(
                             children: [
                               TextSpan(
                                   text: '${widget.officerName} • ',
-                                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                                  style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 11)),
                               TextSpan(
                                   text: 'BWC-${widget.hostbody}',
                                   style: const TextStyle(
@@ -436,9 +442,9 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
             ),
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Column(
                 children: [
@@ -475,7 +481,7 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
             ),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: const Color(0xFF020617),
+              color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -501,9 +507,9 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                   _isLoading
                       ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
                       : _points.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text('No GPS telemetry points found in selected time range.',
-                                  style: TextStyle(color: Colors.white38, fontSize: 12)))
+                                  style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)))
                           : FlutterMap(
                               mapController: _mapController,
                               options: MapOptions(
@@ -549,9 +555,9 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.85),
+                          color: _isDark ? Colors.black.withOpacity(0.85) : Colors.white.withOpacity(0.92),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF1E293B)),
+                          border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
                         ),
                         child: Row(
                           children: [
@@ -585,7 +591,7 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
             ),
             Expanded(
               child: Container(
-                color: const Color(0xFF0A1628),
+                color: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,8 +600,11 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('RECORDED GPS POINTS (${_points.length})',
-                            style: const TextStyle(
-                                color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.6)),
+                            style: TextStyle(
+                                color: _isDark ? Colors.white38 : Colors.grey[500],
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.6)),
                         if (_measure.isNotEmpty)
                           Text('Walk: ${_measure['walk']} • Car: ${_measure['car']}',
                               style: const TextStyle(color: Color(0xFF4A9EFF), fontSize: 10, fontFamily: 'monospace')),
@@ -604,9 +613,9 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                     const SizedBox(height: 8),
                     Expanded(
                       child: _points.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text('No GPS telemetry points found in selected time range.',
-                                  style: TextStyle(color: Colors.white38, fontSize: 12)))
+                                  style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)))
                           : ListView.builder(
                               itemCount: _points.length,
                               itemBuilder: (context, index) {
@@ -624,10 +633,12 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                                     decoration: BoxDecoration(
                                       color: isSelected
                                           ? const Color(0xFF2563EB).withOpacity(0.2)
-                                          : const Color(0xFF0F172A),
+                                          : (_isDark ? const Color(0xFF0F172A) : Colors.white),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                          color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF1E293B)),
+                                          color: isSelected
+                                              ? const Color(0xFF2563EB)
+                                              : (_isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
                                     ),
                                     child: Row(
                                       children: [
@@ -650,20 +661,24 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                                               Row(
                                                 children: [
                                                   Text(p['gpstime']?.toString() ?? '',
-                                                      style: const TextStyle(
-                                                          color: Colors.white,
+                                                      style: TextStyle(
+                                                          color: _isDark ? Colors.white : const Color(0xFF0A1628),
                                                           fontWeight: FontWeight.bold,
                                                           fontSize: 11,
                                                           fontFamily: 'monospace')),
                                                   const SizedBox(width: 6),
                                                   Text(isLbs ? 'Cell-Tower' : 'Satellite GPS',
-                                                      style: const TextStyle(color: Colors.white38, fontSize: 9)),
+                                                      style: TextStyle(
+                                                          color: _isDark ? Colors.white38 : Colors.grey[500],
+                                                          fontSize: 9)),
                                                 ],
                                               ),
                                               const SizedBox(height: 2),
                                               Text('${p['lat']}, ${p['lng']}',
-                                                  style: const TextStyle(
-                                                      color: Colors.white38, fontSize: 10, fontFamily: 'monospace')),
+                                                  style: TextStyle(
+                                                      color: _isDark ? Colors.white38 : Colors.grey[500],
+                                                      fontSize: 10,
+                                                      fontFamily: 'monospace')),
                                             ],
                                           ),
                                         ),
@@ -677,7 +692,8 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
                                                     fontSize: 12,
                                                     fontFamily: 'monospace')),
                                             Text('#Pt ${index + 1}',
-                                                style: const TextStyle(color: Colors.white38, fontSize: 9)),
+                                                style: TextStyle(
+                                                    color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 9)),
                                           ],
                                         ),
                                       ],
@@ -703,17 +719,20 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600)),
+          Text(label,
+              style: TextStyle(
+                  color: _isDark ? Colors.white38 : Colors.grey[500], fontSize: 11, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF020617),
+              color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF334155)),
+              border: Border.all(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
-            child: Text(_formatDateTime(value), style: const TextStyle(color: Colors.white, fontSize: 11)),
+            child: Text(_formatDateTime(value),
+                style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 11)),
           ),
         ],
       ),
@@ -738,11 +757,11 @@ class _LocationHistoryScreenState extends State<LocationHistoryScreen> {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.85),
+          color: _isDark ? Colors.black.withOpacity(0.85) : Colors.white.withOpacity(0.92),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF1E293B)),
+          border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
         ),
-        child: Icon(icon, color: Colors.white, size: 16),
+        child: Icon(icon, color: _isDark ? Colors.white : const Color(0xFF0A1628), size: 16),
       ),
     );
   }

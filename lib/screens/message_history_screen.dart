@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 
 class MessageHistoryScreen extends StatefulWidget {
   const MessageHistoryScreen({super.key});
@@ -14,6 +15,8 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
   List<Map<String, dynamic>> _messages = [];
   String? _webRoot;
   bool _isLoading = true;
+
+  bool get _isDark => AppTheme.isDark(context);
 
   @override
   void initState() {
@@ -46,7 +49,7 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheetContext) {
         return StatefulBuilder(
@@ -100,15 +103,19 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(message['title'] ?? 'Sent To',
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: _isDark ? Colors.white : const Color(0xFF0A1628)),
                                   overflow: TextOverflow.ellipsis),
-                              const Text('Recipient Delivery Status',
-                                  style: TextStyle(color: Colors.white38, fontSize: 11)),
+                              Text('Recipient Delivery Status',
+                                  style: TextStyle(
+                                      color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 11)),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70),
+                          icon: Icon(Icons.close, color: _isDark ? Colors.white70 : Colors.black87),
                           onPressed: () => Navigator.pop(sheetContext),
                         ),
                       ],
@@ -116,40 +123,44 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Search officer name or badge',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
+                        hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
+                        prefixIcon: Icon(Icons.search, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
                         filled: true,
-                        fillColor: const Color(0xFF020617),
+                        fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                       ),
                       onChanged: (_) => onFilterChanged(),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: bhController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Filter by unit',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                        prefixIcon: const Icon(Icons.apartment, color: Colors.white38, size: 18),
+                        hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
+                        prefixIcon: Icon(Icons.apartment, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
                         filled: true,
-                        fillColor: const Color(0xFF020617),
+                        fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                         isDense: true,
                       ),
                       onChanged: (_) => onFilterChanged(),
@@ -159,9 +170,9 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                       child: isLoadingSent
                           ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
                           : sentList.isEmpty
-                              ? const Center(
+                              ? Center(
                                   child: Text('Not sent to anyone yet',
-                                      style: TextStyle(color: Colors.white38, fontSize: 12)))
+                                      style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12)))
                               : ListView.builder(
                                   itemCount: sentList.length,
                                   itemBuilder: (context, index) {
@@ -171,9 +182,9 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                                       margin: const EdgeInsets.only(bottom: 8),
                                       padding: const EdgeInsets.all(14),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF020617),
+                                        color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                                         borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: const Color(0xFF1E293B)),
+                                        border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
                                       ),
                                       child: Row(
                                         children: [
@@ -199,11 +210,14 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 Text(sent['hostname'] ?? 'Unknown',
-                                                    style: const TextStyle(
-                                                        color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                                    style: TextStyle(
+                                                        color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 13)),
                                                 const SizedBox(height: 2),
                                                 Text('Badge: ${sent['hostcode'] ?? ''} · ${sent['sendtime'] ?? ''}',
-                                                    style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                                    style: TextStyle(
+                                                        color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 10)),
                                               ],
                                             ),
                                           ),
@@ -242,10 +256,10 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
       context: context,
       barrierColor: Colors.black.withOpacity(0.75),
       builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF334155)),
+          side: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -258,10 +272,13 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                 children: [
                   Expanded(
                     child: Text(message['title'] ?? 'Untitled',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: _isDark ? Colors.white : const Color(0xFF0A1628))),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white70),
+                    icon: Icon(Icons.close, color: _isDark ? Colors.white70 : Colors.black87),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -279,13 +296,14 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 180,
-                      color: const Color(0xFF020617),
-                      child: const Icon(Icons.broken_image, color: Colors.white24),
+                      color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+                      child: Icon(Icons.broken_image, color: _isDark ? Colors.white24 : Colors.grey[400]),
                     ),
                   ),
                 ),
               const SizedBox(height: 12),
-              Text(message['content'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              Text(message['content'] ?? '',
+                  style: TextStyle(color: _isDark ? Colors.white70 : Colors.black87, fontSize: 13)),
             ],
           ),
         ),
@@ -296,27 +314,31 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
                   _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Message History',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text('Delivery Status & Broadcast Audit', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                            style: TextStyle(
+                                color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                        Text('Delivery Status & Broadcast Audit',
+                            style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 11)),
                       ],
                     ),
                   ),
@@ -328,14 +350,14 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
                   : _messages.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.history, size: 40, color: Colors.white24),
-                              SizedBox(height: 8),
+                              Icon(Icons.history, size: 40, color: _isDark ? Colors.white24 : Colors.grey[400]),
+                              const SizedBox(height: 8),
                               Text('No broadcast history records found.',
-                                  style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                  style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12)),
                             ],
                           ),
                         )
@@ -376,13 +398,17 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(message['title'] ?? 'Untitled',
-                                              style: const TextStyle(
-                                                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                              style: TextStyle(
+                                                  color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13),
                                               overflow: TextOverflow.ellipsis),
                                           const SizedBox(height: 3),
                                           Text(isSent ? 'Sent' : 'Not sent yet',
                                               style: TextStyle(
-                                                  color: isSent ? Colors.greenAccent : Colors.white38,
+                                                  color: isSent
+                                                      ? Colors.greenAccent
+                                                      : (_isDark ? Colors.white38 : Colors.grey[700]),
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w600)),
                                         ],
@@ -390,7 +416,7 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                                     ),
                                     _HoverPreviewButton(onTap: () => _showMessagePreview(message)),
                                     const SizedBox(width: 4),
-                                    const Icon(Icons.chevron_right, size: 18, color: Colors.white38),
+                                    Icon(Icons.chevron_right, size: 18, color: _isDark ? Colors.white38 : Colors.grey[700]),
                                   ],
                                 ),
                               ),
@@ -421,6 +447,8 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
   List<Map<String, dynamic>> _sentList = [];
   bool _isLoading = true;
   Timer? _debounce;
+
+  bool get _isDark => AppTheme.isDark(context);
 
   @override
   void initState() {
@@ -464,15 +492,15 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
@@ -483,9 +511,13 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(widget.message['title'] ?? 'Sent To',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                            style: TextStyle(
+                                color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15),
                             overflow: TextOverflow.ellipsis),
-                        const Text('Recipient Delivery Status', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                        Text('Recipient Delivery Status',
+                            style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 11)),
                       ],
                     ),
                   ),
@@ -494,48 +526,52 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
             ),
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: _isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Column(
                 children: [
                   TextField(
                     controller: _searchController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'Search officer name or badge',
-                      hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                      prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
+                      hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
+                      prefixIcon: Icon(Icons.search, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                       enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
                       filled: true,
-                      fillColor: const Color(0xFF020617),
+                      fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                     ),
                     onChanged: (_) => _onFilterChanged(),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _bhController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'Filter by unit',
-                      hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                      prefixIcon: const Icon(Icons.apartment, color: Colors.white38, size: 18),
+                      hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
+                      prefixIcon: Icon(Icons.apartment, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                       enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF334155))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
                       focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
                       filled: true,
-                      fillColor: const Color(0xFF020617),
+                      fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                       isDense: true,
                     ),
                     onChanged: (_) => _onFilterChanged(),
@@ -547,12 +583,13 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
                   : _sentList.isEmpty
-                      ? const Center(
-                          child: Text('Not sent to anyone yet', style: TextStyle(color: Colors.white38, fontSize: 12)))
+                      ? Center(
+                          child: Text('Not sent to anyone yet',
+                              style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12)))
                       : RefreshIndicator(
                           onRefresh: _loadSentList,
                           color: const Color(0xFF4A9EFF),
-                          backgroundColor: const Color(0xFF0F172A),
+                          backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
                           child: ListView.builder(
                             padding: const EdgeInsets.all(14),
                             itemCount: _sentList.length,
@@ -563,9 +600,9 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
                                 margin: const EdgeInsets.only(bottom: 8),
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0F172A),
+                                  color: _isDark ? const Color(0xFF0F172A) : Colors.white,
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: const Color(0xFF1E293B)),
+                                  border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
                                 ),
                                 child: Row(
                                   children: [
@@ -591,11 +628,14 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(sent['hostname'] ?? 'Unknown',
-                                              style: const TextStyle(
-                                                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                              style: TextStyle(
+                                                  color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13)),
                                           const SizedBox(height: 2),
                                           Text('Badge: ${sent['hostcode'] ?? ''} · ${sent['sendtime'] ?? ''}',
-                                              style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                              style: TextStyle(
+                                                  color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 10)),
                                         ],
                                       ),
                                     ),
@@ -640,6 +680,8 @@ class _HoverIconButton extends StatefulWidget {
 class _HoverIconButtonState extends State<_HoverIconButton> {
   bool _isHovered = false;
 
+  bool get _isDark => AppTheme.isDark(context);
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -652,14 +694,19 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            color: _isHovered
+                ? (_isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))
+                : (_isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF334155)),
+            border: Border.all(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           child: widget.isLoading
-              ? const SizedBox(
-                  width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70))
-              : Icon(widget.icon, color: Colors.white70, size: 18),
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: _isDark ? Colors.white70 : Colors.black87))
+              : Icon(widget.icon, color: _isDark ? Colors.white70 : Colors.black87, size: 18),
         ),
       ),
     );
@@ -678,6 +725,8 @@ class _HoverHistoryCard extends StatefulWidget {
 class _HoverHistoryCardState extends State<_HoverHistoryCard> {
   bool _isHovered = false;
 
+  bool get _isDark => AppTheme.isDark(context);
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -690,10 +739,12 @@ class _HoverHistoryCardState extends State<_HoverHistoryCard> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
+            color: _isDark ? const Color(0xFF0F172A) : Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: _isHovered ? const Color(0xFFF43F5E).withOpacity(0.4) : const Color(0xFF1E293B),
+              color: _isHovered
+                  ? const Color(0xFFF43F5E).withOpacity(0.4)
+                  : (_isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
             ),
           ),
           child: widget.child,
@@ -714,6 +765,8 @@ class _HoverPreviewButton extends StatefulWidget {
 class _HoverPreviewButtonState extends State<_HoverPreviewButton> {
   bool _isHovered = false;
 
+  bool get _isDark => AppTheme.isDark(context);
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -729,7 +782,9 @@ class _HoverPreviewButtonState extends State<_HoverPreviewButton> {
             color: _isHovered ? const Color(0xFF4A9EFF).withOpacity(0.15) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(Icons.visibility_outlined, size: 18, color: _isHovered ? const Color(0xFF4A9EFF) : Colors.white38),
+          child: Icon(Icons.visibility_outlined,
+              size: 18,
+              color: _isHovered ? const Color(0xFF4A9EFF) : (_isDark ? Colors.white38 : Colors.grey[700])),
         ),
       ),
     );

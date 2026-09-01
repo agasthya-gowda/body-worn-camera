@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 
-const _kBg = Color(0xFF0A1628);
-const _kSurface = Color(0xFF0F172A);
-const _kBorder = Color(0xFF1E293B);
-const _kInputBg = Color(0xFF020617);
+const _kBgDark = Color(0xFF0A1628);
+const _kSurfaceDark = Color(0xFF0F172A);
+const _kBorderDark = Color(0xFF1E293B);
+const _kInputBgDark = Color(0xFF020617);
+const _kHoverDark = Color(0xFF334155);
+
+const _kBgLight = Color(0xFFF1F5F9);
+const _kSurfaceLight = Colors.white;
+const _kBorderLight = Color(0xFFE2E8F0);
+const _kInputBgLight = Color(0xFFF8FAFC);
+const _kHoverLight = Color(0xFFE2E8F0);
+
 const _kAmber600 = Color(0xFFD97706);
 const _kAmber500 = Color(0xFFF59E0B);
 const _kAmber400 = Color(0xFFFBBF24);
@@ -36,6 +45,7 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -46,14 +56,18 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            color: _isHovered
+                ? (isDark ? _kHoverDark : _kHoverLight)
+                : (isDark ? _kBorderDark : _kBgLight),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _kBorder),
+            border: Border.all(color: isDark ? _kBorderDark : _kBorderLight),
           ),
           child: widget.isLoading
-              ? const SizedBox(
-                  width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70))
-              : Icon(widget.icon, color: Colors.white70, size: 18),
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: isDark ? Colors.white70 : Colors.black87))
+              : Icon(widget.icon, color: isDark ? Colors.white70 : Colors.black87, size: 18),
         ),
       ),
     );
@@ -141,6 +155,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   Map<String, dynamic> _deviceStates = {};
   bool _isLoading = true;
 
+  bool get _isDark => AppTheme.isDark(context);
+
   @override
   void initState() {
     super.initState();
@@ -179,25 +195,26 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
       case '1':
         return _kRose300;
       case '2':
-        return Colors.white38;
+        return _isDark ? Colors.white38 : Colors.grey[500]!;
       case '3':
         return _kAmber400;
       default:
-        return Colors.white38;
+        return _isDark ? Colors.white38 : Colors.grey[500]!;
     }
   }
 
   InputDecoration _sheetFieldDecoration(String label, {String? hint, bool required = false}) {
+    final isDark = _isDark;
+    final border = isDark ? _kBorderDark : _kBorderLight;
     return InputDecoration(
       labelText: required ? '$label *' : label,
-      labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
+      labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey[700], fontSize: 12),
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white24, fontSize: 12),
+      hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey[400], fontSize: 12),
       filled: true,
-      fillColor: _kInputBg,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: _kBorder)),
-      enabledBorder:
-          OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: _kBorder)),
+      fillColor: isDark ? _kInputBgDark : _kInputBgLight,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: border)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: border)),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: _kAmber500, width: 1.5)),
     );
@@ -210,13 +227,15 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
       child: TextFormField(
         controller: c,
         keyboardType: type,
-        style: TextStyle(color: Colors.white, fontSize: 13, fontFamily: mono ? 'monospace' : null),
+        style: TextStyle(
+            color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13, fontFamily: mono ? 'monospace' : null),
         decoration: _sheetFieldDecoration(label, hint: hint, required: required),
       ),
     );
   }
 
   Widget _recorderTypeToggle({required String value, required ValueChanged<String> onChanged}) {
+    final isDark = _isDark;
     Widget option(String code, String label) {
       final selected = value == code;
       return Expanded(
@@ -226,13 +245,15 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: selected ? _kBlue600 : _kInputBg,
+              color: selected ? _kBlue600 : (isDark ? _kInputBgDark : _kInputBgLight),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: selected ? const Color(0xFF60A5FA) : _kBorder),
+              border: Border.all(color: selected ? const Color(0xFF60A5FA) : (isDark ? _kBorderDark : _kBorderLight)),
             ),
             child: Text(label,
                 style: TextStyle(
-                    color: selected ? Colors.white : Colors.white54, fontSize: 12, fontWeight: FontWeight.bold)),
+                    color: selected ? Colors.white : (isDark ? Colors.white54 : Colors.grey[700]),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold)),
           ),
         ),
       );
@@ -249,6 +270,13 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   // ---------------- ADD DEVICE BOTTOM SHEET ----------------
   void _showAddDeviceSheet() {
+    final isDark = _isDark;
+    final bg = isDark ? _kBgDark : _kBgLight;
+    final border = isDark ? _kBorderDark : _kBorderLight;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0A1628);
+    final textFaint = isDark ? Colors.white38 : Colors.grey[500];
+    final textMuted = isDark ? Colors.white54 : Colors.grey[700];
+
     final bhController = TextEditingController(text: 'ChipScape Police Dept');
     final hostbodyController = TextEditingController();
     final officerNameController = TextEditingController();
@@ -262,7 +290,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: _kBg,
+      backgroundColor: bg,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheetContext) {
         return StatefulBuilder(
@@ -270,7 +298,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
             return Container(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(sheetContext).size.height * 0.9),
               decoration: BoxDecoration(
-                border: Border.all(color: _kBorder),
+                border: Border.all(color: border),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -278,7 +306,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: _kBorder))),
+                    decoration: BoxDecoration(border: Border(bottom: BorderSide(color: border))),
                     child: Row(
                       children: [
                         Container(
@@ -290,18 +318,18 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                           child: const Icon(Icons.videocam, color: _kAmber400, size: 20),
                         ),
                         const SizedBox(width: 10),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Add Body Camera',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                              Text('Register new BWC hardware', style: TextStyle(fontSize: 11, color: Colors.white38)),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary)),
+                              Text('Register new BWC hardware', style: TextStyle(fontSize: 11, color: textFaint)),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white54),
+                          icon: Icon(Icons.close, color: textMuted),
                           onPressed: () => Navigator.pop(sheetContext),
                         ),
                       ],
@@ -319,8 +347,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                           _sheetField(hostbodyController, 'Device Number / Serial SN (hostbody)',
                               hint: 'e.g. 0300102', required: true, mono: true),
                           _sheetField(bhController, 'Assigned Unit (bh)', required: true),
-                          const Text('RECORDER MODE (recorderType) *',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white38, fontSize: 11, letterSpacing: 0.6)),
+                          Text('RECORDER MODE (recorderType) *',
+                              style: TextStyle(fontWeight: FontWeight.bold, color: textFaint, fontSize: 11, letterSpacing: 0.6)),
                           const SizedBox(height: 8),
                           _recorderTypeToggle(value: recorderType, onChanged: (v) => setSheetState(() => recorderType = v)),
                           const SizedBox(height: 14),
@@ -402,6 +430,15 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   // ---------------- DEVICE DETAILS / MODIFY / DELETE BOTTOM SHEET ----------------
   void _showDeviceDetailSheet(Map<String, dynamic> device) {
+    final isDark = _isDark;
+    final bg = isDark ? _kBgDark : _kBgLight;
+    final surface = isDark ? _kSurfaceDark : _kSurfaceLight;
+    final border = isDark ? _kBorderDark : _kBorderLight;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0A1628);
+    final textFaint = isDark ? Colors.white38 : Colors.grey[500];
+    final textMuted = isDark ? Colors.white54 : Colors.grey[700];
+    final altSurface = isDark ? const Color(0xFF1E293B) : _kHoverLight;
+
     final bhController = TextEditingController(text: device['unitname']?.toString() ?? '');
     final officerNameController = TextEditingController(text: device['hostname'] == 'Unassigned' ? '' : (device['hostname']?.toString() ?? ''));
     final hostbodyController = TextEditingController(text: device['hostbody']?.toString() ?? '');
@@ -418,8 +455,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
         context: outerContext,
         barrierColor: Colors.black87,
         builder: (dialogContext) => Dialog(
-          backgroundColor: _kSurface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: _kBorder)),
+          backgroundColor: surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: border)),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -434,11 +471,11 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                 const SizedBox(height: 12),
                 Text('Delete Device BWC-${device['hostbody']}?',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary)),
                 const SizedBox(height: 6),
                 Text('This will permanently remove device hardware serial #${device['hostbody']} from inventory.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12, color: Colors.white38)),
+                    style: TextStyle(fontSize: 12, color: textFaint)),
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -446,12 +483,12 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(dialogContext),
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E293B),
+                          backgroundColor: altSurface,
                           side: BorderSide.none,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                        child: Text('Cancel', style: TextStyle(color: textMuted, fontWeight: FontWeight.w600)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -496,7 +533,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: _kBg,
+      backgroundColor: bg,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheetContext) {
         return StatefulBuilder(
@@ -504,7 +541,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
             return Container(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(sheetContext).size.height * 0.9),
               decoration: BoxDecoration(
-                border: Border.all(color: _kBorder),
+                border: Border.all(color: border),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -512,7 +549,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: _kBorder))),
+                    decoration: BoxDecoration(border: Border(bottom: BorderSide(color: border))),
                     child: Row(
                       children: [
                         Container(
@@ -526,27 +563,27 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(isEditing ? 'Edit Device' : 'BWC-${device['hostbody'] ?? ''}',
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary)),
                               Text(isEditing ? 'Modify configuration' : 'Hardware detail & telemetry',
-                                  style: const TextStyle(fontSize: 11, color: Colors.white38)),
+                                  style: TextStyle(fontSize: 11, color: textFaint)),
                             ],
                           ),
                         ),
                         Container(
                           margin: const EdgeInsets.only(right: 4),
                           decoration: BoxDecoration(
-                            color: isEditing ? _kBlue600 : const Color(0xFF1E293B),
+                            color: isEditing ? _kBlue600 : altSurface,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: isEditing ? _kBlue400 : _kBorder),
+                            border: Border.all(color: isEditing ? _kBlue400 : border),
                           ),
                           child: IconButton(
                             icon: const Icon(Icons.edit_outlined, size: 18),
-                            color: isEditing ? Colors.white : Colors.white70,
+                            color: isEditing ? Colors.white : textMuted,
                             onPressed: isSaving ? null : () => setSheetState(() => isEditing = !isEditing),
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white54),
+                          icon: Icon(Icons.close, color: textMuted),
                           onPressed: () => Navigator.pop(sheetContext),
                         ),
                       ],
@@ -565,9 +602,9 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: _kSurface,
+                                    color: surface,
                                     borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(color: _kBorder),
+                                    border: Border.all(color: border),
                                   ),
                                   child: Column(
                                     children: [
@@ -601,10 +638,10 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                     Expanded(
                                       child: OutlinedButton.icon(
                                         onPressed: isSaving ? null : () => setSheetState(() => isEditing = true),
-                                        icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 18),
-                                        label: const Text('Edit Device', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        icon: Icon(Icons.edit_outlined, color: textPrimary, size: 18),
+                                        label: Text('Edit Device', style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold)),
                                         style: OutlinedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF1E293B),
+                                          backgroundColor: altSurface,
                                           side: BorderSide.none,
                                           padding: const EdgeInsets.symmetric(vertical: 14),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -621,8 +658,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                 _sheetField(hostbodyController, 'Device Number', hint: 'e.g. 0300100', required: true, mono: true),
                                 _sheetField(bhController, 'Unit', required: true),
                                 _sheetField(officerNameController, 'Assigned Officer (optional)', hint: 'e.g. Agasthya Gowda'),
-                                const Text('RECORDER MODE (recorderType) *',
-                                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white38, fontSize: 11, letterSpacing: 0.6)),
+                                Text('RECORDER MODE (recorderType) *',
+                                    style: TextStyle(fontWeight: FontWeight.bold, color: textFaint, fontSize: 11, letterSpacing: 0.6)),
                                 const SizedBox(height: 8),
                                 _recorderTypeToggle(value: recorderType, onChanged: (v) => setSheetState(() => recorderType = v)),
                                 const SizedBox(height: 14),
@@ -707,13 +744,14 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   }
 
   Widget _detailRow(String label, String value, {Color? valueColor, bool mono = false, bool bold = false, bool isLast = false}) {
+    final isDark = _isDark;
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.white38)),
+          Text(label, style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.grey[500])),
           const SizedBox(width: 12),
           Flexible(
             child: Text(
@@ -721,7 +759,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 12,
-                color: valueColor ?? Colors.white,
+                color: valueColor ?? (isDark ? Colors.white : const Color(0xFF0A1628)),
                 fontWeight: bold ? FontWeight.bold : FontWeight.w500,
                 fontFamily: mono ? 'monospace' : null,
               ),
@@ -739,7 +777,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Status State:', style: TextStyle(fontSize: 12, color: Colors.white38)),
+          Text('Status State:', style: TextStyle(fontSize: 12, color: _isDark ? Colors.white38 : Colors.grey[500])),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
@@ -757,16 +795,26 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    final bg = isDark ? _kBgDark : _kBgLight;
+    final surface = isDark ? _kSurfaceDark : _kSurfaceLight;
+    final border = isDark ? _kBorderDark : _kBorderLight;
+    final inputBg = isDark ? _kInputBgDark : _kInputBgLight;
+    final textPrimary = isDark ? Colors.white : const Color(0xFF0A1628);
+    final textSecondary = isDark ? Colors.white70 : Colors.black87;
+    final textFaint = isDark ? Colors.white38 : Colors.grey[500];
+    final textFaintest = isDark ? Colors.white24 : Colors.grey[400];
+
     return Scaffold(
-      backgroundColor: _kBg,
+      backgroundColor: bg,
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: _kSurface,
-                border: Border(bottom: BorderSide(color: _kBorder)),
+              decoration: BoxDecoration(
+                color: surface,
+                border: Border(bottom: BorderSide(color: border)),
               ),
               child: Row(
                 children: [
@@ -776,10 +824,10 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Device Inventory',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('Device Inventory',
+                            style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
                         Text('Body Worn Cameras (${_devices.length})',
-                            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                            style: TextStyle(color: textFaint, fontSize: 11)),
                       ],
                     ),
                   ),
@@ -797,34 +845,34 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
             ),
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: _kSurface,
-                border: Border(bottom: BorderSide(color: _kBorder)),
+              decoration: BoxDecoration(
+                color: surface,
+                border: Border(bottom: BorderSide(color: border)),
               ),
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: TextStyle(color: textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   hintText: 'Search by SN (hostbody), officer, or unit...',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                  prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
+                  hintStyle: TextStyle(color: textFaint, fontSize: 12),
+                  prefixIcon: Icon(Icons.search, color: textFaint, size: 18),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _kBorder),
+                    borderSide: BorderSide(color: border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _kBorder),
+                    borderSide: BorderSide(color: border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: _kAmber500, width: 1.5),
                   ),
                   filled: true,
-                  fillColor: _kInputBg,
+                  fillColor: inputBg,
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.white38, size: 18),
+                          icon: Icon(Icons.clear, color: textFaint, size: 18),
                           onPressed: () {
                             _searchController.clear();
                             _loadDevices();
@@ -839,20 +887,20 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: _kAmber400))
                   : _devices.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.videocam_off_outlined, size: 40, color: Colors.white24),
-                              SizedBox(height: 8),
-                              Text('No body cameras found.', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                              Icon(Icons.videocam_off_outlined, size: 40, color: textFaintest),
+                              const SizedBox(height: 8),
+                              Text('No body cameras found.', style: TextStyle(color: textFaint, fontSize: 12)),
                             ],
                           ),
                         )
                       : RefreshIndicator(
                           onRefresh: _loadDevices,
                           color: _kAmber400,
-                          backgroundColor: _kSurface,
+                          backgroundColor: surface,
                           child: ListView.builder(
                             padding: const EdgeInsets.all(14),
                             itemCount: _devices.length,
@@ -865,9 +913,9 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                   margin: const EdgeInsets.only(bottom: 10),
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(
-                                    color: _kSurface,
+                                    color: surface,
                                     borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(color: _kBorder),
+                                    border: Border.all(color: border),
                                   ),
                                   child: Row(
                                     children: [
@@ -892,8 +940,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                               children: [
                                                 Flexible(
                                                   child: Text('BWC-${device['hostbody'] ?? 'Unknown'}',
-                                                      style: const TextStyle(
-                                                          color: Colors.white,
+                                                      style: TextStyle(
+                                                          color: textPrimary,
                                                           fontWeight: FontWeight.bold,
                                                           fontSize: 13,
                                                           fontFamily: 'monospace'),
@@ -920,13 +968,13 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                                 Text(device['type_name'] ?? '',
                                                     style: const TextStyle(color: _kAmber400, fontSize: 11, fontWeight: FontWeight.w600)),
                                                 const SizedBox(width: 6),
-                                                const Text('•', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                                                Text('•', style: TextStyle(color: textFaintest, fontSize: 11)),
                                                 const SizedBox(width: 6),
-                                                const Icon(Icons.person_outline, size: 11, color: Colors.white38),
+                                                Icon(Icons.person_outline, size: 11, color: textFaint),
                                                 const SizedBox(width: 3),
                                                 Expanded(
                                                   child: Text(device['hostname'] ?? 'Unassigned',
-                                                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                                      style: TextStyle(color: textSecondary, fontSize: 11),
                                                       overflow: TextOverflow.ellipsis),
                                                 ),
                                               ],
@@ -935,18 +983,18 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                             Row(
                                               children: [
                                                 Text('${device['capacity'] ?? '0'} MB',
-                                                    style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace')),
+                                                    style: TextStyle(color: textFaint, fontSize: 10, fontFamily: 'monospace')),
                                                 const SizedBox(width: 6),
-                                                const Text('•', style: TextStyle(color: Colors.white24, fontSize: 10)),
+                                                Text('•', style: TextStyle(color: textFaintest, fontSize: 10)),
                                                 const SizedBox(width: 6),
                                                 Text(device['recorder_type']?.toString() == '1' ? 'Live Stream' : 'Normal',
-                                                    style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                                    style: TextStyle(color: textFaint, fontSize: 10)),
                                                 const SizedBox(width: 6),
-                                                const Text('•', style: TextStyle(color: Colors.white24, fontSize: 10)),
+                                                Text('•', style: TextStyle(color: textFaintest, fontSize: 10)),
                                                 const SizedBox(width: 6),
                                                 Expanded(
                                                   child: Text(device['unitname'] ?? '',
-                                                      style: const TextStyle(color: Colors.white38, fontSize: 10),
+                                                      style: TextStyle(color: textFaint, fontSize: 10),
                                                       overflow: TextOverflow.ellipsis),
                                                 ),
                                               ],
@@ -954,7 +1002,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                           ],
                                         ),
                                       ),
-                                      const Icon(Icons.edit_outlined, size: 16, color: Colors.white38),
+                                      Icon(Icons.edit_outlined, size: 16, color: textFaint),
                                     ],
                                   ),
                                 ),

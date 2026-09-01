@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../theme_controller.dart';
 import 'add_officer_screen.dart';
 import 'modify_officer_screen.dart';
 
@@ -26,6 +27,7 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -36,14 +38,18 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(9),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            color: _isHovered
+                ? (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))
+                : (isDark ? const Color(0xFF1E293B) : Colors.white),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF334155)),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           child: widget.isLoading
-              ? const SizedBox(
-                  width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70))
-              : Icon(widget.icon, color: Colors.white70, size: 18),
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: isDark ? Colors.white70 : Colors.black87))
+              : Icon(widget.icon, color: isDark ? Colors.white70 : Colors.black87, size: 18),
         ),
       ),
     );
@@ -138,6 +144,8 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
 
   bool get _hasActiveFilters => _filterBh != null || _filterType != null || _filterBind != null;
 
+  bool get _isDark => AppTheme.isDark(context);
+
   @override
   void initState() {
     super.initState();
@@ -188,6 +196,7 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
     String? tempBh = _filterBh;
     String? tempType = _filterType;
     String? tempBind = _filterBind;
+    final isDark = _isDark;
 
     showDialog(
       context: context,
@@ -195,10 +204,10 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Dialog(
-              backgroundColor: const Color(0xFF0F172A),
+              backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFF1E293B)),
+                side: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
               ),
               insetPadding: const EdgeInsets.symmetric(horizontal: 24),
               child: Padding(
@@ -210,10 +219,13 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Filter Officers',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('Filter Officers',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF0A1628))),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70),
+                          icon: Icon(Icons.close, color: isDark ? Colors.white70 : Colors.black87),
                           onPressed: () => Navigator.pop(context),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -221,24 +233,32 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    const Text('UNIT',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white38, fontSize: 11, letterSpacing: 0.6)),
+                    Text('UNIT',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white38 : Colors.grey[700],
+                            fontSize: 11,
+                            letterSpacing: 0.6)),
                     const SizedBox(height: 8),
                     TextFormField(
                       initialValue: tempBh,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Enter unit name',
-                        hintStyle: const TextStyle(color: Colors.white38),
+                        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500]),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         filled: true,
-                        fillColor: const Color(0xFF020617),
+                        fillColor: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                       ),
                       onChanged: (v) => tempBh = v.trim().isEmpty ? null : v.trim(),
                     ),
                     const SizedBox(height: 16),
-                    const Text('OFFICER TYPE',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white38, fontSize: 11, letterSpacing: 0.6)),
+                    Text('OFFICER TYPE',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white38 : Colors.grey[700],
+                            fontSize: 11,
+                            letterSpacing: 0.6)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -246,21 +266,37 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                         ..._userTypes.entries.map((e) => _darkChip(
                               label: e.value.toString(),
                               selected: tempType == e.key,
+                              isDark: isDark,
                               onTap: () => setSheetState(() => tempType = tempType == e.key ? null : e.key),
                             )),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Text('DEVICE BINDING',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white38, fontSize: 11, letterSpacing: 0.6)),
+                    Text('DEVICE BINDING',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white38 : Colors.grey[700],
+                            fontSize: 11,
+                            letterSpacing: 0.6)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       children: [
-                        _darkChip(label: 'All', selected: tempBind == null, onTap: () => setSheetState(() => tempBind = null)),
-                        _darkChip(label: 'Bound', selected: tempBind == '1', onTap: () => setSheetState(() => tempBind = '1')),
                         _darkChip(
-                            label: 'Not Bound', selected: tempBind == '2', onTap: () => setSheetState(() => tempBind = '2')),
+                            label: 'All',
+                            selected: tempBind == null,
+                            isDark: isDark,
+                            onTap: () => setSheetState(() => tempBind = null)),
+                        _darkChip(
+                            label: 'Bound',
+                            selected: tempBind == '1',
+                            isDark: isDark,
+                            onTap: () => setSheetState(() => tempBind = '1')),
+                        _darkChip(
+                            label: 'Not Bound',
+                            selected: tempBind == '2',
+                            isDark: isDark,
+                            onTap: () => setSheetState(() => tempBind = '2')),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -277,10 +313,10 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                             },
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: const BorderSide(color: Color(0xFF334155)),
+                              side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text('Clear', style: TextStyle(color: Colors.white70)),
+                            child: Text('Clear', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -316,19 +352,23 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
     );
   }
 
-  Widget _darkChip({required String label, required bool selected, required VoidCallback onTap}) {
+  Widget _darkChip(
+      {required String label, required bool selected, required VoidCallback onTap, required bool isDark}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF2563EB).withOpacity(0.2) : const Color(0xFF020617),
+          color: selected
+              ? const Color(0xFF2563EB).withOpacity(0.2)
+              : (isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC)),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? const Color(0xFF2563EB) : const Color(0xFF334155)),
+          border: Border.all(
+              color: selected ? const Color(0xFF2563EB) : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
         ),
         child: Text(label,
             style: TextStyle(
-                color: selected ? const Color(0xFF60A5FA) : Colors.white70,
+                color: selected ? const Color(0xFF60A5FA) : (isDark ? Colors.white70 : Colors.black87),
                 fontSize: 12,
                 fontWeight: FontWeight.w600)),
       ),
@@ -341,16 +381,17 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = _isDark;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
@@ -360,10 +401,13 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Manage Officers',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                        const Text('Personnel & Badge Registry',
-                            style: TextStyle(color: Colors.white38, fontSize: 11)),
+                        Text('Manage Officers',
+                            style: TextStyle(
+                                color: isDark ? Colors.white : const Color(0xFF0A1628),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                        Text('Personnel & Badge Registry',
+                            style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 11)),
                       ],
                     ),
                   ),
@@ -387,37 +431,37 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
             ),
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Search by name, badge # or unit...',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 18),
+                        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 12),
+                        prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.grey[500], size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF334155)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF334155)),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
                         ),
                         filled: true,
-                        fillColor: const Color(0xFF020617),
+                        fillColor: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: Colors.white38, size: 18),
+                                icon: Icon(Icons.clear, color: isDark ? Colors.white38 : Colors.grey[500], size: 18),
                                 onPressed: () {
                                   _searchController.clear();
                                   _loadOfficers();
@@ -453,21 +497,21 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
                   : _officers.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.person_outline, size: 40, color: Colors.white24),
-                              SizedBox(height: 8),
+                              Icon(Icons.person_outline, size: 40, color: isDark ? Colors.white24 : Colors.grey[400]),
+                              const SizedBox(height: 8),
                               Text('No officers match your search criteria.',
-                                  style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                  style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)),
                             ],
                           ),
                         )
                       : RefreshIndicator(
                           onRefresh: _loadOfficers,
                           color: const Color(0xFF4A9EFF),
-                          backgroundColor: const Color(0xFF0F172A),
+                          backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                           child: ListView.builder(
                             padding: const EdgeInsets.all(14),
                             itemCount: _officers.length,
@@ -487,7 +531,7 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                                   margin: const EdgeInsets.only(bottom: 10),
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0F172A),
+                                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
                                     borderRadius: BorderRadius.circular(18),
                                   ),
                                   child: Row(
@@ -517,8 +561,10 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                                               children: [
                                                 Flexible(
                                                   child: Text(officer['realname'] ?? 'Unknown',
-                                                      style: const TextStyle(
-                                                          color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                                      style: TextStyle(
+                                                          color: isDark ? Colors.white : const Color(0xFF0A1628),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 13),
                                                       overflow: TextOverflow.ellipsis),
                                                 ),
                                                 const SizedBox(width: 6),
@@ -542,15 +588,22 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                                             Row(
                                               children: [
                                                 Text(_typeLabel(officer['type']),
-                                                    style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                                    style: TextStyle(
+                                                        color: isDark ? Colors.white70 : Colors.black87, fontSize: 11)),
                                                 const SizedBox(width: 6),
-                                                const Text('•', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                                                Text('•',
+                                                    style: TextStyle(
+                                                        color: isDark ? Colors.white24 : Colors.grey[400],
+                                                        fontSize: 11)),
                                                 const SizedBox(width: 6),
-                                                const Icon(Icons.apartment, size: 11, color: Colors.white38),
+                                                Icon(Icons.apartment,
+                                                    size: 11, color: isDark ? Colors.white38 : Colors.grey[500]),
                                                 const SizedBox(width: 3),
                                                 Expanded(
                                                   child: Text(officer['bh'] ?? '',
-                                                      style: const TextStyle(color: Colors.white38, fontSize: 10),
+                                                      style: TextStyle(
+                                                          color: isDark ? Colors.white38 : Colors.grey[500],
+                                                          fontSize: 10),
                                                       overflow: TextOverflow.ellipsis),
                                                 ),
                                               ],
@@ -559,18 +612,21 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                                               const SizedBox(height: 3),
                                               Row(
                                                 children: [
-                                                  const Icon(Icons.phone, size: 10, color: Colors.white38),
+                                                  Icon(Icons.phone,
+                                                      size: 10, color: isDark ? Colors.white38 : Colors.grey[500]),
                                                   const SizedBox(width: 3),
                                                   Text(officer['mobile'].toString(),
-                                                      style: const TextStyle(
-                                                          color: Colors.white38, fontSize: 10, fontFamily: 'monospace')),
+                                                      style: TextStyle(
+                                                          color: isDark ? Colors.white38 : Colors.grey[500],
+                                                          fontSize: 10,
+                                                          fontFamily: 'monospace')),
                                                 ],
                                               ),
                                             ],
                                           ],
                                         ),
                                       ),
-                                      const Icon(Icons.chevron_right, size: 18, color: Colors.white38),
+                                      Icon(Icons.chevron_right, size: 18, color: isDark ? Colors.white38 : Colors.grey[500]),
                                     ],
                                   ),
                                 ),
