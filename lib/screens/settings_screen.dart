@@ -2,12 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import '../services/api_service.dart';
-import 'add_officer_screen.dart';
-import 'officer_list_screen.dart';
-import 'messages_list_screen.dart';
-import 'message_history_screen.dart';
-import 'live_tracking_screen.dart';
-import 'device_list_screen.dart';
+
+const _kBg = Color(0xFF0A1628);
+const _kSurface = Color(0xFF0F172A);
+const _kBorder = Color(0xFF1E293B);
+const _kBlue600 = Color(0xFF2563EB);
+const _kBlue400 = Color(0xFF60A5FA);
+const _kRose600 = Color(0xFFE11D48);
+const _kRose300 = Color(0xFFFDA4AF);
+
+class _PillSwitch extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  const _PillSwitch({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 44,
+        height: 24,
+        padding: const EdgeInsets.all(2),
+        alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+        decoration: BoxDecoration(
+          color: value ? _kBlue600 : const Color(0xFF334155),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          width: 20,
+          height: 20,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 3)],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -43,8 +78,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-
-
   Future<void> _saveSetting(String key, dynamic value) async {
     final prefs = await SharedPreferences.getInstance();
     if (value is bool) {
@@ -58,12 +91,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        backgroundColor: _kSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: _kBorder),
+        ),
+        title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+        content: const Text('Are you sure you want to sign out?', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -80,7 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: _kRose600,
               foregroundColor: Colors.white,
             ),
             child: const Text('Sign Out'),
@@ -93,250 +131,217 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Settings',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0A1628),
-          ),
+      backgroundColor: _kBg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: const BoxDecoration(
+                color: _kSurface,
+                border: Border(bottom: BorderSide(color: _kBorder)),
+              ),
+              child: const Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('System Settings',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('Application & Telemetry Preferences',
+                            style: TextStyle(color: Colors.white38, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 32),
+                children: [
+                  const SizedBox(height: 16),
+                  _buildProfileCard(),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle('Camera'),
+                  _buildSettingsCard([
+                    _buildDropdownTile(
+                      icon: Icons.high_quality,
+                      label: 'Recording quality',
+                      value: _recordingQuality,
+                      options: ['576p', '720p', '1080p'],
+                      onChanged: (value) {
+                        setState(() => _recordingQuality = value!);
+                        _saveSetting('recordingQuality', value!);
+                      },
+                    ),
+                    _buildDivider(),
+                    _buildSwitchTile(
+                      icon: Icons.lightbulb_outline,
+                      label: 'Recording indicator',
+                      subtitle: 'LED light on while recording',
+                      value: _recordingIndicator,
+                      onChanged: (value) {
+                        setState(() => _recordingIndicator = value);
+                        _saveSetting('recordingIndicator', value);
+                      },
+                    ),
+                    _buildDivider(),
+                    _buildSwitchTile(
+                      icon: Icons.gps_fixed,
+                      label: 'GPS tracking',
+                      subtitle: 'Track location during recording',
+                      value: _gpsEnabled,
+                      onChanged: (value) {
+                        setState(() => _gpsEnabled = value);
+                        _saveSetting('gpsEnabled', value);
+                      },
+                    ),
+                  ]),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle('Upload'),
+                  _buildSettingsCard([
+                    _buildSwitchTile(
+                      icon: Icons.cloud_upload_outlined,
+                      label: 'Auto-upload',
+                      subtitle: 'Automatically upload recordings',
+                      value: _autoUpload,
+                      onChanged: (value) {
+                        setState(() => _autoUpload = value);
+                        _saveSetting('autoUpload', value);
+                      },
+                    ),
+                    _buildDivider(),
+                    _buildSwitchTile(
+                      icon: Icons.wifi,
+                      label: 'Upload on WiFi only',
+                      subtitle: 'Save mobile data',
+                      value: _uploadOnWifiOnly,
+                      onChanged: (value) {
+                        setState(() => _uploadOnWifiOnly = value);
+                        _saveSetting('uploadOnWifiOnly', value);
+                      },
+                    ),
+                  ]),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle('Connection'),
+                  _buildSettingsCard([
+                    _buildNavigationTile(
+                      icon: Icons.bluetooth,
+                      label: 'Bluetooth pairing',
+                      subtitle: 'Connect to BWC device',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Scanning for BWC devices...'),
+                            backgroundColor: Color(0xFF1E3A5F),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildDivider(),
+                    _buildNavigationTile(
+                      icon: Icons.usb,
+                      label: 'USB connection',
+                      subtitle: 'Connect via USB cable',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Connect USB cable to BWC device'),
+                            backgroundColor: Color(0xFF1E3A5F),
+                          ),
+                        );
+                      },
+                    ),
+                  ]),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle('About'),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _kSurface.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: _kBorder.withOpacity(0.8)),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.verified_user_outlined, size: 16, color: _kBlue400),
+                            SizedBox(width: 6),
+                            Text('BWC Mobile Law Enforcement Portal',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white70)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        const Text('Build v1.0.0',
+                            style: TextStyle(fontSize: 11, color: Colors.white38, fontFamily: 'monospace')),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'ChipScape Police Dept • Real-time Body Worn Camera Fleet Management',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 10, color: Colors.white38),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _logout,
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: _kRose600.withOpacity(0.15),
+                          foregroundColor: _kRose300,
+                          side: BorderSide(color: _kRose600.withOpacity(0.4)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.logout, color: _kRose300),
+                        label: const Text(
+                          'Sign Out',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: _kRose300),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        automaticallyImplyLeading: false,
-        elevation: 0,
-      ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 8),
-          _buildProfileCard(),
-          const SizedBox(height: 16),
-          _buildSectionTitle('Camera'),
-          _buildSettingsCard([
-            _buildDropdownTile(
-              icon: Icons.high_quality,
-              label: 'Recording quality',
-              value: _recordingQuality,
-              options: ['576p', '720p', '1080p'],
-              onChanged: (value) {
-                setState(() => _recordingQuality = value!);
-                _saveSetting('recordingQuality', value!);
-              },
-            ),
-            _buildDivider(),
-            _buildSwitchTile(
-              icon: Icons.lightbulb_outline,
-              label: 'Recording indicator',
-              subtitle: 'LED light on while recording',
-              value: _recordingIndicator,
-              onChanged: (value) {
-                setState(() => _recordingIndicator = value);
-                _saveSetting('recordingIndicator', value);
-              },
-            ),
-            _buildDivider(),
-            _buildSwitchTile(
-              icon: Icons.gps_fixed,
-              label: 'GPS tracking',
-              subtitle: 'Track location during recording',
-              value: _gpsEnabled,
-              onChanged: (value) {
-                setState(() => _gpsEnabled = value);
-                _saveSetting('gpsEnabled', value);
-              },
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _buildSectionTitle('Upload'),
-          _buildSettingsCard([
-            _buildSwitchTile(
-              icon: Icons.cloud_upload_outlined,
-              label: 'Auto-upload',
-              subtitle: 'Automatically upload recordings',
-              value: _autoUpload,
-              onChanged: (value) {
-                setState(() => _autoUpload = value);
-                _saveSetting('autoUpload', value);
-              },
-            ),
-            _buildDivider(),
-            _buildSwitchTile(
-              icon: Icons.wifi,
-              label: 'Upload on WiFi only',
-              subtitle: 'Save mobile data',
-              value: _uploadOnWifiOnly,
-              onChanged: (value) {
-                setState(() => _uploadOnWifiOnly = value);
-                _saveSetting('uploadOnWifiOnly', value);
-              },
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _buildSectionTitle('Connection'),
-          _buildSettingsCard([
-            _buildNavigationTile(
-              icon: Icons.bluetooth,
-              label: 'Bluetooth pairing',
-              subtitle: 'Connect to BWC device',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Scanning for BWC devices...'),
-                    backgroundColor: Color(0xFF1A3A6B),
-                  ),
-                );
-              },
-            ),
-            _buildDivider(),
-            _buildNavigationTile(
-              icon: Icons.usb,
-              label: 'USB connection',
-              subtitle: 'Connect via USB cable',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Connect USB cable to BWC device'),
-                    backgroundColor: Color(0xFF1A3A6B),
-                  ),
-                );
-              },
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _buildSectionTitle('Admin'),
-          _buildSettingsCard([
-            _buildNavigationTile(
-              icon: Icons.people,
-              label: 'Manage Officers',
-              subtitle: 'View, add, or edit officer accounts',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const OfficerListScreen()),
-                );
-              },
-            ),
-            _buildDivider(),
-            _buildNavigationTile(
-              icon: Icons.map,
-              label: 'Live Tracking',
-              subtitle: 'View officer locations on map',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LiveTrackingScreen()),
-                );
-              },
-            ),
-            _buildDivider(),
-            _buildNavigationTile(
-              icon: Icons.videocam_outlined,
-              label: 'Manage Devices',
-              subtitle: 'Add, edit, or remove camera devices',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DeviceListScreen()),
-                );
-              },
-            ),
-            _buildDivider(),
-            _buildNavigationTile(
-              icon: Icons.message,
-              label: 'Dispatch Messages',
-              subtitle: 'Create and send alerts to officers',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MessagesListScreen()),
-                );
-              },
-            ),
-            _buildDivider(),
-            _buildNavigationTile(
-              icon: Icons.history,
-              label: 'Message History',
-              subtitle: 'View who received each message',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MessageHistoryScreen()),
-                );
-              },
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _buildSectionTitle('About'),
-          _buildSettingsCard([
-            _buildNavigationTile(
-              icon: Icons.info_outline,
-              label: 'App version',
-              subtitle: 'BWC Mobile v1.0.0',
-              onTap: () {},
-            ),
-            _buildDivider(),
-            _buildNavigationTile(
-              icon: Icons.history,
-              label: 'Audit log',
-              subtitle: 'View activity history',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Audit log coming soon'),
-                  ),
-                );
-              },
-            ),
-          ]),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ElevatedButton.icon(
-              onPressed: _logout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[50],
-                foregroundColor: Colors.red,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              icon: const Icon(Icons.logout),
-              label: const Text(
-                'Sign Out',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-        ],
       ),
     );
   }
 
   Widget _buildProfileCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0A1628),
-        borderRadius: BorderRadius.circular(16),
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _kBorder),
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: const Color(0xFF1A3A6B),
-            child: Text(
-              _username.isNotEmpty ? _username[0].toUpperCase() : 'O',
-              style: const TextStyle(
-                color: Color(0xFF4A9EFF),
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: _kBlue600.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _kBlue600.withOpacity(0.4)),
+            ),
+            child: Center(
+              child: Text(
+                _username.isNotEmpty ? _username[0].toUpperCase() : 'O',
+                style: const TextStyle(color: _kBlue400, fontWeight: FontWeight.bold, fontSize: 22),
               ),
             ),
           ),
@@ -346,18 +351,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Text(
                 _username,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
               ),
+              const SizedBox(height: 2),
               const Text(
                 'Field Officer',
-                style: TextStyle(
-                  color: Color(0xFF4A9EFF),
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: _kBlue400, fontSize: 13),
               ),
             ],
           ),
@@ -368,14 +367,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
       child: Text(
         title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Colors.grey[500],
-          letterSpacing: 0.8,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: Colors.white38,
+          letterSpacing: 0.6,
         ),
       ),
     );
@@ -383,19 +382,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSettingsCard(List<Widget> children) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _kBorder),
       ),
       child: Column(children: children),
+    );
+  }
+
+  Widget _buildIconBadge(IconData icon) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: _kBlue600.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _kBlue600.withOpacity(0.3)),
+      ),
+      child: Icon(icon, color: _kBlue400, size: 18),
     );
   }
 
@@ -407,32 +413,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required ValueChanged<bool> onChanged,
   }) {
     return ListTile(
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8F0FE),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: const Color(0xFF1A3A6B), size: 20),
-      ),
+      leading: _buildIconBadge(icon),
       title: Text(
         label,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF0A1628),
-        ),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
+        style: const TextStyle(fontSize: 12, color: Colors.white38),
       ),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeColor: const Color(0xFF1A3A6B),
-      ),
+      trailing: _PillSwitch(value: value, onChanged: onChanged),
     );
   }
 
@@ -444,30 +434,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return ListTile(
       onTap: onTap,
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8F0FE),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: const Color(0xFF1A3A6B), size: 20),
-      ),
+      leading: _buildIconBadge(icon),
       title: Text(
         label,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF0A1628),
-        ),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
+        style: const TextStyle(fontSize: 12, color: Colors.white38),
       ),
       trailing: const Icon(
         Icons.chevron_right,
-        color: Colors.grey,
+        color: Colors.white38,
       ),
     );
   }
@@ -480,26 +458,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required ValueChanged<String?> onChanged,
   }) {
     return ListTile(
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8F0FE),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: const Color(0xFF1A3A6B), size: 20),
-      ),
+      leading: _buildIconBadge(icon),
       title: Text(
         label,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF0A1628),
-        ),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
       ),
       trailing: DropdownButton<String>(
         value: value,
         underline: const SizedBox(),
+        dropdownColor: _kSurface,
+        style: const TextStyle(color: Colors.white, fontSize: 13),
+        icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white38),
         items: options.map((option) {
           return DropdownMenuItem(
             value: option,
@@ -512,6 +481,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDivider() {
-    return const Divider(height: 1, indent: 68);
+    return const Divider(height: 1, indent: 68, color: _kBorder);
   }
 }
