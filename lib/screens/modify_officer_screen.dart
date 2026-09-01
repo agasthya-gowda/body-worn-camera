@@ -72,20 +72,74 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
   Future<void> _deleteOfficer() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Officer'),
-        content: Text('Are you sure you want to delete ${widget.officer['realname']}? This cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF334155)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(color: Colors.red.withOpacity(0.2), shape: BoxShape.circle),
+                child: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 26),
+              ),
+              const SizedBox(height: 12),
+              const Text('Delete Officer Record?',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 6),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(text: 'Are you sure you want to remove ', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    TextSpan(
+                        text: widget.officer['realname'] ?? 'this officer',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                    TextSpan(
+                        text: ' (#${widget.officer['hostcode']}) from the active registry?',
+                        style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E293B),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Confirm Delete', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-            child: const Text('Delete'),
-          ),
-        ],
+        ),
       ),
     );
 
@@ -120,94 +174,246 @@ class _ModifyOfficerScreenState extends State<ModifyOfficerScreen> {
     super.dispose();
   }
 
+  InputDecoration _fieldDecoration(String label, IconData icon, {bool required = false, bool enabled = true}) {
+    return InputDecoration(
+      labelText: required ? '$label *' : label,
+      labelStyle: TextStyle(color: enabled ? Colors.white54 : Colors.white24, fontSize: 12),
+      prefixIcon: Icon(icon, color: enabled ? Colors.white38 : Colors.white24, size: 18),
+      filled: true,
+      fillColor: enabled ? const Color(0xFF020617) : const Color(0xFF0F172A),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF334155)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF334155)),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF1E293B)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+      ),
+      errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text('Edit Officer', style: TextStyle(color: Color(0xFF0A1628), fontWeight: FontWeight.bold)),
-        elevation: 0,
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: const Color(0xFF0A1628),
+      body: SafeArea(
+        child: Column(
           children: [
-            TextFormField(
-              initialValue: widget.officer['hostcode'] ?? '',
-              decoration: const InputDecoration(labelText: 'Badge ID (cannot be changed)', border: OutlineInputBorder()),
-              enabled: false,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _realnameController,
-              decoration: const InputDecoration(labelText: 'Full Name *', border: OutlineInputBorder()),
-              validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _bhController,
-              decoration: const InputDecoration(labelText: 'Unit Name *', border: OutlineInputBorder()),
-              validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedType,
-              decoration: const InputDecoration(labelText: 'Type *', border: OutlineInputBorder()),
-              items: widget.userTypes.entries
-                  .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value.toString())))
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedType = value),
-              validator: (value) => (value == null) ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _mobileController,
-              decoration: const InputDecoration(labelText: 'Mobile Number', border: OutlineInputBorder()),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _telController,
-              decoration: const InputDecoration(labelText: 'Telephone', border: OutlineInputBorder()),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _sortController,
-              decoration: const InputDecoration(labelText: 'Sort Order', border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _noteController,
-              decoration: const InputDecoration(labelText: 'Note', border: OutlineInputBorder()),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isSubmitting ? null : _submitForm,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A3A6B),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            // ---- Top App Bar ----
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0F172A),
+                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
               ),
-              child: _isSubmitting
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Update Officer', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _isSubmitting ? null : _deleteOfficer,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Row(
+                children: [
+                  _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Modify Officer',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        Text('ID: ${widget.officer['id']} • #${widget.officer['hostcode']}',
+                            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  _HoverDeleteButton(onTap: _isSubmitting ? () {} : _deleteOfficer),
+                ],
               ),
-              child: const Text('Delete Officer', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+
+            // ---- Form ----
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    TextFormField(
+                      initialValue: widget.officer['hostcode'] ?? '',
+                      style: const TextStyle(color: Colors.white38, fontSize: 13),
+                      decoration: _fieldDecoration('Badge Code (cannot be changed)', Icons.tag, enabled: false),
+                      enabled: false,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _realnameController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _fieldDecoration('Full Name (realname)', Icons.person_outline, required: true),
+                      validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _bhController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _fieldDecoration('Unit Name (bh)', Icons.apartment, required: true),
+                      validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedType,
+                      dropdownColor: const Color(0xFF0F172A),
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _fieldDecoration('Police Rank (type)', Icons.shield_outlined, required: true),
+                      items: widget.userTypes.entries
+                          .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value.toString())))
+                          .toList(),
+                      onChanged: (value) => setState(() => _selectedType = value),
+                      validator: (value) => (value == null) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _mobileController,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            decoration: _fieldDecoration('Mobile', Icons.phone_iphone),
+                            keyboardType: TextInputType.phone,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _telController,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            decoration: _fieldDecoration('Tel', Icons.call),
+                            keyboardType: TextInputType.phone,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _sortController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _fieldDecoration('Sort Order', Icons.sort),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _noteController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _fieldDecoration('Notes', Icons.notes),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _isSubmitting ? null : _submitForm,
+                        icon: _isSubmitting
+                            ? const SizedBox(
+                                width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.save, size: 18),
+                        label: Text(
+                          _isSubmitting ? 'Saving Changes...' : 'SAVE OFFICER MODIFICATIONS',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.4),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 6,
+                          shadowColor: Colors.blue.withOpacity(0.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverIconButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _HoverIconButton({required this.icon, required this.onTap});
+
+  @override
+  State<_HoverIconButton> createState() => _HoverIconButtonState();
+}
+
+class _HoverIconButtonState extends State<_HoverIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(9),
+          decoration: BoxDecoration(
+            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF334155)),
+          ),
+          child: Icon(widget.icon, color: Colors.white70, size: 18),
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverDeleteButton extends StatefulWidget {
+  final VoidCallback onTap;
+  const _HoverDeleteButton({required this.onTap});
+
+  @override
+  State<_HoverDeleteButton> createState() => _HoverDeleteButtonState();
+}
+
+class _HoverDeleteButtonState extends State<_HoverDeleteButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.redAccent.withOpacity(0.3) : Colors.redAccent.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+              SizedBox(width: 4),
+              Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600, fontSize: 12)),
+            ],
+          ),
         ),
       ),
     );

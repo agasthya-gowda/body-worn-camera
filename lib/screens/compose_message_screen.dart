@@ -27,6 +27,8 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
 
   bool get _isEditing => widget.existingMessage != null;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -54,8 +56,6 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
 
     setState(() => _isSubmitting = true);
 
-    // If editing and no new image was picked, fetch the existing image's bytes
-    // (still needed since doc marks pic_mess as Required even for edit)
     Uint8List? imageBytesToSend = _pickedImageBytes;
     String? imageNameToSend = _pickedImageName;
 
@@ -109,9 +109,7 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
       final newMessageId = result['data']?['id'];
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isEditing
-              ? 'Message updated'
-              : 'Message created (ID: $newMessageId)'),
+          content: Text(_isEditing ? 'Message updated' : 'Message created (ID: $newMessageId)'),
           backgroundColor: Colors.green,
         ),
       );
@@ -126,17 +124,62 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
   Future<void> _deleteMessage() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Message'),
-        content: const Text('Are you sure you want to delete this message?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-            child: const Text('Delete'),
+      barrierColor: Colors.black.withOpacity(0.75),
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF334155)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(color: Colors.red.withOpacity(0.2), shape: BoxShape.circle),
+                child: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 26),
+              ),
+              const SizedBox(height: 12),
+              const Text('Delete Message?',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 6),
+              const Text('This dispatch template will be permanently removed.',
+                  style: TextStyle(color: Colors.white54, fontSize: 12), textAlign: TextAlign.center),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E293B),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
 
@@ -167,112 +210,241 @@ class _ComposeMessageScreenState extends State<ComposeMessageScreen> {
     super.dispose();
   }
 
+  InputDecoration _fieldDecoration(String label, {bool required = false}) {
+    return InputDecoration(
+      labelText: required ? '$label *' : label,
+      labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
+      filled: true,
+      fillColor: const Color(0xFF020617),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF334155)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF334155)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF9333EA), width: 1.5),
+      ),
+      errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text(_isEditing ? 'Edit Message' : 'New Message',
-            style: const TextStyle(color: Color(0xFF0A1628), fontWeight: FontWeight.bold)),
-        elevation: 0,
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: const Color(0xFF0A1628),
+      body: SafeArea(
+        child: Column(
           children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title *', border: OutlineInputBorder()),
-              validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0F172A),
+                border: Border(bottom: BorderSide(color: Color(0xFF1E293B))),
+              ),
+              child: Row(
+                children: [
+                  _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_isEditing ? 'Edit Dispatch' : 'Compose Dispatch',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        const Text('Tactical Broadcast Advisory', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  if (_isEditing) _HoverDeleteButton(onTap: _isSubmitting ? () {} : _deleteMessage),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _contentController,
-              decoration: const InputDecoration(labelText: 'Content *', border: OutlineInputBorder()),
-              maxLines: 4,
-              validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 160,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[400]!),
-                ),
-                child: _pickedImageBytes != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.memory(_pickedImageBytes!, fit: BoxFit.cover, width: double.infinity),
-                      )
-                    : (_isEditing && _existingImageUrl != null)
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                Image.network(
-                                  (widget.webRoot ?? ApiService.baseUrl) + _existingImageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => const Center(
-                                    child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 8, right: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black54,
-                                      borderRadius: BorderRadius.circular(8),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _fieldDecoration('Title', required: true),
+                      validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _contentController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _fieldDecoration('Advisory Message Content', required: true),
+                      maxLines: 5,
+                      validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 160,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF020617),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFF334155)),
+                        ),
+                        child: _pickedImageBytes != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.memory(_pickedImageBytes!, fit: BoxFit.cover, width: double.infinity),
+                              )
+                            : (_isEditing && _existingImageUrl != null)
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        Image.network(
+                                          (widget.webRoot ?? ApiService.baseUrl) + _existingImageUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => const Center(
+                                            child: Icon(Icons.broken_image, color: Colors.white24, size: 40),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          bottom: 8,
+                                          right: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black54,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: const Text('Tap to change',
+                                                style: TextStyle(color: Colors.white, fontSize: 12)),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    child: const Text('Tap to change', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                  )
+                                : const Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.add_photo_alternate, size: 36, color: Colors.white24),
+                                        SizedBox(height: 8),
+                                        Text('Tap to select image *', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.add_photo_alternate, size: 40, color: Colors.grey),
-                                SizedBox(height: 8),
-                                Text('Tap to select image *', style: TextStyle(color: Colors.grey)),
-                              ],
-                            ),
-                          ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isSubmitting ? null : _submitForm,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A3A6B),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: _isSubmitting
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(_isEditing ? 'Update Message' : 'Create Message', style: const TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            if (_isEditing) ...[
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _isSubmitting ? null : _deleteMessage,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _isSubmitting ? null : _submitForm,
+                        icon: _isSubmitting
+                            ? const SizedBox(
+                                width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.send, size: 18),
+                        label: Text(
+                          _isSubmitting
+                              ? 'Submitting...'
+                              : (_isEditing ? 'UPDATE DISPATCH TEMPLATE' : 'PROCEED TO SELECT RECIPIENTS'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.4),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF9333EA),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 6,
+                          shadowColor: Colors.purple.withOpacity(0.4),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Text('Delete Message', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
-            ],
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverIconButton extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _HoverIconButton({required this.icon, required this.onTap});
+
+  @override
+  State<_HoverIconButton> createState() => _HoverIconButtonState();
+}
+
+class _HoverIconButtonState extends State<_HoverIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.all(9),
+          decoration: BoxDecoration(
+            color: _isHovered ? const Color(0xFF334155) : const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF334155)),
+          ),
+          child: Icon(widget.icon, color: Colors.white70, size: 18),
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverDeleteButton extends StatefulWidget {
+  final VoidCallback onTap;
+  const _HoverDeleteButton({required this.onTap});
+
+  @override
+  State<_HoverDeleteButton> createState() => _HoverDeleteButtonState();
+}
+
+class _HoverDeleteButtonState extends State<_HoverDeleteButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: _isHovered ? Colors.redAccent.withOpacity(0.3) : Colors.redAccent.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+              SizedBox(width: 4),
+              Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600, fontSize: 12)),
+            ],
+          ),
         ),
       ),
     );
