@@ -96,8 +96,11 @@ class _UploadScreenState extends State<UploadScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.signal_cellular_alt,
-                    color: Colors.green[700], size: 14),
+                Icon(
+                  Icons.signal_cellular_alt,
+                  color: Colors.green[700],
+                  size: 14,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '4G',
@@ -112,104 +115,101 @@ class _UploadScreenState extends State<UploadScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F0FE),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF1A3A6B).withOpacity(0.3),
-                  style: BorderStyle.solid,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F0FE),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF1A3A6B).withOpacity(0.3),
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 48,
+                      color: Color(0xFF1A3A6B),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Auto-upload enabled',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A3A6B),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Videos upload automatically via 4G/WiFi',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(
-                    Icons.cloud_upload_outlined,
-                    size: 48,
-                    color: Color(0xFF1A3A6B),
-                  ),
-                  const SizedBox(height: 8),
                   const Text(
-                    'Auto-upload enabled',
+                    'Upload Queue',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A3A6B),
                       fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0A1628),
                     ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
-                    'Videos upload automatically via 4G/WiFi',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                    ),
+                    '${_uploadQueue.length} files',
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Upload Queue',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0A1628),
-                  ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _uploadQueue.length,
+                  itemBuilder: (context, index) {
+                    final item = _uploadQueue[index];
+                    return _buildUploadItem(item);
+                  },
                 ),
-                Text(
-                  '${_uploadQueue.length} files',
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _uploadQueue.length,
-                itemBuilder: (context, index) {
-                  final item = _uploadQueue[index];
-                  return _buildUploadItem(item);
-                },
               ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: _isUploading ? _stopUpload : _startUpload,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _isUploading ? Colors.red : const Color(0xFF1A3A6B),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: _isUploading ? _stopUpload : _startUpload,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isUploading
+                        ? Colors.red
+                        : const Color(0xFF1A3A6B),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                icon: Icon(_isUploading ? Icons.stop : Icons.cloud_upload),
-                label: Text(
-                  _isUploading ? 'Stop Upload' : 'Start Upload',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  icon: Icon(_isUploading ? Icons.stop : Icons.cloud_upload),
+                  label: Text(
+                    _isUploading ? 'Stop Upload' : 'Start Upload',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -282,17 +282,14 @@ class _UploadScreenState extends State<UploadScreen> {
             children: [
               Text(
                 item['size'],
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
               Text(
                 isDone
                     ? 'Upload complete'
                     : isUploading
-                        ? item['speed']
-                        : 'Waiting...',
+                    ? item['speed']
+                    : 'Waiting...',
                 style: TextStyle(
                   color: isDone ? Colors.green : Colors.grey,
                   fontSize: 12,

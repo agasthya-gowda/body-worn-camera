@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme_controller.dart';
+import '../widgets/responsive_content.dart';
 
 class MessageHistoryScreen extends StatefulWidget {
   const MessageHistoryScreen({super.key});
@@ -50,7 +51,9 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (sheetContext, setSheetState) {
@@ -66,7 +69,9 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
               if (result['code'] == 200) {
                 final data = result['data'];
                 setSheetState(() {
-                  sentList = List<Map<String, dynamic>>.from(data['list'] ?? []);
+                  sentList = List<Map<String, dynamic>>.from(
+                    data['list'] ?? [],
+                  );
                   isLoadingSent = false;
                 });
               } else {
@@ -102,20 +107,34 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(message['title'] ?? 'Sent To',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: _isDark ? Colors.white : const Color(0xFF0A1628)),
-                                  overflow: TextOverflow.ellipsis),
-                              Text('Recipient Delivery Status',
-                                  style: TextStyle(
-                                      color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 11)),
+                              Text(
+                                message['title'] ?? 'Sent To',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: _isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0A1628),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                'Recipient Delivery Status',
+                                style: TextStyle(
+                                  color: _isDark
+                                      ? Colors.white38
+                                      : Colors.grey[700],
+                                  fontSize: 11,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.close, color: _isDark ? Colors.white70 : Colors.black87),
+                          icon: Icon(
+                            Icons.close,
+                            color: _isDark ? Colors.white70 : Colors.black87,
+                          ),
                           onPressed: () => Navigator.pop(sheetContext),
                         ),
                       ],
@@ -123,44 +142,96 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: searchController,
-                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
+                      style: TextStyle(
+                        color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                        fontSize: 13,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Search officer name or badge',
-                        hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
-                        prefixIcon: Icon(Icons.search, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
+                        hintStyle: TextStyle(
+                          color: _isDark ? Colors.white38 : Colors.grey[700],
+                          fontSize: 12,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: _isDark ? Colors.white38 : Colors.grey[700],
+                          size: 18,
+                        ),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
                         focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFF43F5E),
+                            width: 1.5,
+                          ),
+                        ),
                         filled: true,
-                        fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+                        fillColor: _isDark
+                            ? const Color(0xFF020617)
+                            : const Color(0xFFF8FAFC),
                       ),
                       onChanged: (_) => onFilterChanged(),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: bhController,
-                      style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
+                      style: TextStyle(
+                        color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                        fontSize: 13,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Filter by unit',
-                        hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
-                        prefixIcon: Icon(Icons.apartment, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
+                        hintStyle: TextStyle(
+                          color: _isDark ? Colors.white38 : Colors.grey[700],
+                          fontSize: 12,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.apartment,
+                          color: _isDark ? Colors.white38 : Colors.grey[700],
+                          size: 18,
+                        ),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
                         focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFF43F5E),
+                            width: 1.5,
+                          ),
+                        ),
                         filled: true,
-                        fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+                        fillColor: _isDark
+                            ? const Color(0xFF020617)
+                            : const Color(0xFFF8FAFC),
                         isDense: true,
                       ),
                       onChanged: (_) => onFilterChanged(),
@@ -168,78 +239,132 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                     const SizedBox(height: 10),
                     Expanded(
                       child: isLoadingSent
-                          ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF4A9EFF),
+                              ),
+                            )
                           : sentList.isEmpty
-                              ? Center(
-                                  child: Text('Not sent to anyone yet',
-                                      style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12)))
-                              : ListView.builder(
-                                  itemCount: sentList.length,
-                                  itemBuilder: (context, index) {
-                                    final sent = sentList[index];
-                                    final isOffline = sent['offline'] == '1';
-                                    return Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 38,
-                                            height: 38,
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFF43F5E).withOpacity(0.15),
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(color: const Color(0xFFF43F5E).withOpacity(0.3)),
+                          ? Center(
+                              child: Text(
+                                'Not sent to anyone yet',
+                                style: TextStyle(
+                                  color: _isDark
+                                      ? Colors.white38
+                                      : Colors.grey[700],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: sentList.length,
+                              itemBuilder: (context, index) {
+                                final sent = sentList[index];
+                                final isOffline = sent['offline'] == '1';
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: _isDark
+                                        ? const Color(0xFF020617)
+                                        : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: _isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 38,
+                                        height: 38,
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFFF43F5E,
+                                          ).withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(
+                                              0xFFF43F5E,
+                                            ).withOpacity(0.3),
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            (sent['hostname'] ?? '?')[0]
+                                                .toUpperCase(),
+                                            style: const TextStyle(
+                                              color: Color(0xFFFB7185),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
                                             ),
-                                            child: Center(
-                                              child: Text(
-                                                (sent['hostname'] ?? '?')[0].toUpperCase(),
-                                                style: const TextStyle(
-                                                    color: Color(0xFFFB7185), fontWeight: FontWeight.bold, fontSize: 15),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              sent['hostname'] ?? 'Unknown',
+                                              style: TextStyle(
+                                                color: _isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFF0A1628),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(sent['hostname'] ?? 'Unknown',
-                                                    style: TextStyle(
-                                                        color: _isDark ? Colors.white : const Color(0xFF0A1628),
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 13)),
-                                                const SizedBox(height: 2),
-                                                Text('Badge: ${sent['hostcode'] ?? ''} · ${sent['sendtime'] ?? ''}',
-                                                    style: TextStyle(
-                                                        color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 10)),
-                                              ],
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'Badge: ${sent['hostcode'] ?? ''} · ${sent['sendtime'] ?? ''}',
+                                              style: TextStyle(
+                                                color: _isDark
+                                                    ? Colors.white38
+                                                    : Colors.grey[700],
+                                                fontSize: 10,
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            isOffline
+                                                ? Icons.cloud_off
+                                                : Icons.cloud_done,
+                                            size: 15,
+                                            color: isOffline
+                                                ? Colors.amberAccent
+                                                : Colors.greenAccent,
                                           ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(isOffline ? Icons.cloud_off : Icons.cloud_done,
-                                                  size: 15, color: isOffline ? Colors.amberAccent : Colors.greenAccent),
-                                              const SizedBox(width: 4),
-                                              Text(isOffline ? 'OFFLINE' : 'ONLINE',
-                                                  style: TextStyle(
-                                                      color: isOffline ? Colors.amberAccent : Colors.greenAccent,
-                                                      fontSize: 9,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontFamily: 'monospace')),
-                                            ],
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            isOffline ? 'OFFLINE' : 'ONLINE',
+                                            style: TextStyle(
+                                              color: isOffline
+                                                  ? Colors.amberAccent
+                                                  : Colors.greenAccent,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'monospace',
+                                            ),
                                           ),
                                         ],
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -259,7 +384,9 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
         backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          side: BorderSide(
+            color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -271,14 +398,20 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(message['title'] ?? 'Untitled',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: _isDark ? Colors.white : const Color(0xFF0A1628))),
+                    child: Text(
+                      message['title'] ?? 'Untitled',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                      ),
+                    ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: _isDark ? Colors.white70 : Colors.black87),
+                    icon: Icon(
+                      Icons.close,
+                      color: _isDark ? Colors.white70 : Colors.black87,
+                    ),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -290,20 +423,31 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
                   child: Image.network(
-                    (_webRoot ?? ApiService.baseUrl) + message['imgurl'].toString(),
+                    (_webRoot ?? ApiService.baseUrl) +
+                        message['imgurl'].toString(),
                     height: 180,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 180,
-                      color: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
-                      child: Icon(Icons.broken_image, color: _isDark ? Colors.white24 : Colors.grey[400]),
+                      color: _isDark
+                          ? const Color(0xFF020617)
+                          : const Color(0xFFF8FAFC),
+                      child: Icon(
+                        Icons.broken_image,
+                        color: _isDark ? Colors.white24 : Colors.grey[400],
+                      ),
                     ),
                   ),
                 ),
               const SizedBox(height: 12),
-              Text(message['content'] ?? '',
-                  style: TextStyle(color: _isDark ? Colors.white70 : Colors.black87, fontSize: 13)),
+              Text(
+                message['content'] ?? '',
+                style: TextStyle(
+                  color: _isDark ? Colors.white70 : Colors.black87,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
         ),
@@ -314,7 +458,9 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
+      backgroundColor: _isDark
+          ? const Color(0xFF0A1628)
+          : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
@@ -322,107 +468,177 @@ class _MessageHistoryScreenState extends State<MessageHistoryScreen> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF0F172A) : Colors.white,
-                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
+                border: Border(
+                  bottom: BorderSide(
+                    color: _isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
               ),
               child: Row(
                 children: [
-                  _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
+                  _HoverIconButton(
+                    icon: Icons.arrow_back,
+                    onTap: () => Navigator.pop(context),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Message History',
-                            style: TextStyle(
-                                color: _isDark ? Colors.white : const Color(0xFF0A1628),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15)),
-                        Text('Delivery Status & Broadcast Audit',
-                            style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 11)),
+                        Text(
+                          'Message History',
+                          style: TextStyle(
+                            color: _isDark
+                                ? Colors.white
+                                : const Color(0xFF0A1628),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          'Delivery Status & Broadcast Audit',
+                          style: TextStyle(
+                            color: _isDark ? Colors.white38 : Colors.grey[700],
+                            fontSize: 11,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  _HoverIconButton(icon: Icons.refresh, onTap: _isLoading ? () {} : _loadMessages, isLoading: _isLoading),
+                  _HoverIconButton(
+                    icon: Icons.refresh,
+                    onTap: _isLoading ? () {} : _loadMessages,
+                    isLoading: _isLoading,
+                  ),
                 ],
               ),
             ),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF4A9EFF),
+                      ),
+                    )
                   : _messages.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.history, size: 40, color: _isDark ? Colors.white24 : Colors.grey[400]),
-                              const SizedBox(height: 8),
-                              Text('No broadcast history records found.',
-                                  style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12)),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.history,
+                            size: 40,
+                            color: _isDark ? Colors.white24 : Colors.grey[400],
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(14),
-                          itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            final message = _messages[index];
-                            final isSent = message['flag'] == '1';
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _HoverHistoryCard(
-                                onTap: () => _showSentDetailSheet(message),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
+                          const SizedBox(height: 8),
+                          Text(
+                            'No broadcast history records found.',
+                            style: TextStyle(
+                              color: _isDark
+                                  ? Colors.white38
+                                  : Colors.grey[700],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ResponsiveContent(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(14),
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final message = _messages[index];
+                          final isSent = message['flag'] == '1';
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _HoverHistoryCard(
+                              onTap: () => _showSentDetailSheet(message),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: isSent
+                                          ? const Color(
+                                              0xFF059669,
+                                            ).withOpacity(0.15)
+                                          : const Color(
+                                              0xFF334155,
+                                            ).withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
                                         color: isSent
-                                            ? const Color(0xFF059669).withOpacity(0.15)
-                                            : const Color(0xFF334155).withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
+                                            ? const Color(
+                                                0xFF059669,
+                                              ).withOpacity(0.4)
+                                            : const Color(0xFF334155),
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      isSent
+                                          ? Icons.check_circle_outline
+                                          : Icons.schedule,
+                                      size: 18,
+                                      color: isSent
+                                          ? Colors.greenAccent
+                                          : Colors.white38,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          message['title'] ?? 'Untitled',
+                                          style: TextStyle(
+                                            color: _isDark
+                                                ? Colors.white
+                                                : const Color(0xFF0A1628),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          isSent ? 'Sent' : 'Not sent yet',
+                                          style: TextStyle(
                                             color: isSent
-                                                ? const Color(0xFF059669).withOpacity(0.4)
-                                                : const Color(0xFF334155)),
-                                      ),
-                                      child: Icon(
-                                        isSent ? Icons.check_circle_outline : Icons.schedule,
-                                        size: 18,
-                                        color: isSent ? Colors.greenAccent : Colors.white38,
-                                      ),
+                                                ? Colors.greenAccent
+                                                : (_isDark
+                                                      ? Colors.white38
+                                                      : Colors.grey[700]),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(message['title'] ?? 'Untitled',
-                                              style: TextStyle(
-                                                  color: _isDark ? Colors.white : const Color(0xFF0A1628),
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 13),
-                                              overflow: TextOverflow.ellipsis),
-                                          const SizedBox(height: 3),
-                                          Text(isSent ? 'Sent' : 'Not sent yet',
-                                              style: TextStyle(
-                                                  color: isSent
-                                                      ? Colors.greenAccent
-                                                      : (_isDark ? Colors.white38 : Colors.grey[700]),
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600)),
-                                        ],
-                                      ),
-                                    ),
-                                    _HoverPreviewButton(onTap: () => _showMessagePreview(message)),
-                                    const SizedBox(width: 4),
-                                    Icon(Icons.chevron_right, size: 18, color: _isDark ? Colors.white38 : Colors.grey[700]),
-                                  ],
-                                ),
+                                  ),
+                                  _HoverPreviewButton(
+                                    onTap: () => _showMessagePreview(message),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.chevron_right,
+                                    size: 18,
+                                    color: _isDark
+                                        ? Colors.white38
+                                        : Colors.grey[700],
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -492,7 +708,9 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _isDark ? const Color(0xFF0A1628) : const Color(0xFFF1F5F9),
+      backgroundColor: _isDark
+          ? const Color(0xFF0A1628)
+          : const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Column(
           children: [
@@ -500,24 +718,43 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF0F172A) : Colors.white,
-                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
+                border: Border(
+                  bottom: BorderSide(
+                    color: _isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
               ),
               child: Row(
                 children: [
-                  _HoverIconButton(icon: Icons.arrow_back, onTap: () => Navigator.pop(context)),
+                  _HoverIconButton(
+                    icon: Icons.arrow_back,
+                    onTap: () => Navigator.pop(context),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.message['title'] ?? 'Sent To',
-                            style: TextStyle(
-                                color: _isDark ? Colors.white : const Color(0xFF0A1628),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15),
-                            overflow: TextOverflow.ellipsis),
-                        Text('Recipient Delivery Status',
-                            style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 11)),
+                        Text(
+                          widget.message['title'] ?? 'Sent To',
+                          style: TextStyle(
+                            color: _isDark
+                                ? Colors.white
+                                : const Color(0xFF0A1628),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Recipient Delivery Status',
+                          style: TextStyle(
+                            color: _isDark ? Colors.white38 : Colors.grey[700],
+                            fontSize: 11,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -528,50 +765,108 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: _isDark ? const Color(0xFF0F172A) : Colors.white,
-                border: Border(bottom: BorderSide(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
+                border: Border(
+                  bottom: BorderSide(
+                    color: _isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
               ),
               child: Column(
                 children: [
                   TextField(
                     controller: _searchController,
-                    style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
+                    style: TextStyle(
+                      color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                      fontSize: 13,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search officer name or badge',
-                      hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
-                      prefixIcon: Icon(Icons.search, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
+                      hintStyle: TextStyle(
+                        color: _isDark ? Colors.white38 : Colors.grey[700],
+                        fontSize: 12,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: _isDark ? Colors.white38 : Colors.grey[700],
+                        size: 18,
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: _isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
                       enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: _isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
                       focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFF43F5E),
+                          width: 1.5,
+                        ),
+                      ),
                       filled: true,
-                      fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+                      fillColor: _isDark
+                          ? const Color(0xFF020617)
+                          : const Color(0xFFF8FAFC),
                     ),
                     onChanged: (_) => _onFilterChanged(),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _bhController,
-                    style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628), fontSize: 13),
+                    style: TextStyle(
+                      color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                      fontSize: 13,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Filter by unit',
-                      hintStyle: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12),
-                      prefixIcon: Icon(Icons.apartment, color: _isDark ? Colors.white38 : Colors.grey[700], size: 18),
+                      hintStyle: TextStyle(
+                        color: _isDark ? Colors.white38 : Colors.grey[700],
+                        fontSize: 12,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.apartment,
+                        color: _isDark ? Colors.white38 : Colors.grey[700],
+                        size: 18,
+                      ),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: _isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
                       enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: _isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
                       focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.5)),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFF43F5E),
+                          width: 1.5,
+                        ),
+                      ),
                       filled: true,
-                      fillColor: _isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+                      fillColor: _isDark
+                          ? const Color(0xFF020617)
+                          : const Color(0xFFF8FAFC),
                       isDense: true,
                     ),
                     onChanged: (_) => _onFilterChanged(),
@@ -581,84 +876,136 @@ class _SentDetailScreenState extends State<SentDetailScreen> {
             ),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EFF)))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF4A9EFF),
+                      ),
+                    )
                   : _sentList.isEmpty
-                      ? Center(
-                          child: Text('Not sent to anyone yet',
-                              style: TextStyle(color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 12)))
-                      : RefreshIndicator(
-                          onRefresh: _loadSentList,
-                          color: const Color(0xFF4A9EFF),
-                          backgroundColor: _isDark ? const Color(0xFF0F172A) : Colors.white,
-                          child: ListView.builder(
+                  ? Center(
+                      child: Text(
+                        'Not sent to anyone yet',
+                        style: TextStyle(
+                          color: _isDark ? Colors.white38 : Colors.grey[700],
+                          fontSize: 12,
+                        ),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadSentList,
+                      color: const Color(0xFF4A9EFF),
+                      backgroundColor: _isDark
+                          ? const Color(0xFF0F172A)
+                          : Colors.white,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(14),
+                        itemCount: _sentList.length,
+                        itemBuilder: (context, index) {
+                          final sent = _sentList[index];
+                          final isOffline = sent['offline'] == '1';
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
                             padding: const EdgeInsets.all(14),
-                            itemCount: _sentList.length,
-                            itemBuilder: (context, index) {
-                              final sent = _sentList[index];
-                              final isOffline = sent['offline'] == '1';
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: _isDark ? const Color(0xFF0F172A) : Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: _isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF43F5E).withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: const Color(0xFFF43F5E).withOpacity(0.3)),
+                            decoration: BoxDecoration(
+                              color: _isDark
+                                  ? const Color(0xFF0F172A)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFFF43F5E,
+                                    ).withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFFF43F5E,
+                                      ).withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      (sent['hostname'] ?? '?')[0]
+                                          .toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Color(0xFFFB7185),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
                                       ),
-                                      child: Center(
-                                        child: Text(
-                                          (sent['hostname'] ?? '?')[0].toUpperCase(),
-                                          style: const TextStyle(
-                                              color: Color(0xFFFB7185), fontWeight: FontWeight.bold, fontSize: 15),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        sent['hostname'] ?? 'Unknown',
+                                        style: TextStyle(
+                                          color: _isDark
+                                              ? Colors.white
+                                              : const Color(0xFF0A1628),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(sent['hostname'] ?? 'Unknown',
-                                              style: TextStyle(
-                                                  color: _isDark ? Colors.white : const Color(0xFF0A1628),
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 13)),
-                                          const SizedBox(height: 2),
-                                          Text('Badge: ${sent['hostcode'] ?? ''} · ${sent['sendtime'] ?? ''}',
-                                              style: TextStyle(
-                                                  color: _isDark ? Colors.white38 : Colors.grey[700], fontSize: 10)),
-                                        ],
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Badge: ${sent['hostcode'] ?? ''} · ${sent['sendtime'] ?? ''}',
+                                        style: TextStyle(
+                                          color: _isDark
+                                              ? Colors.white38
+                                              : Colors.grey[700],
+                                          fontSize: 10,
+                                        ),
                                       ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      isOffline
+                                          ? Icons.cloud_off
+                                          : Icons.cloud_done,
+                                      size: 15,
+                                      color: isOffline
+                                          ? Colors.amberAccent
+                                          : Colors.greenAccent,
                                     ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(isOffline ? Icons.cloud_off : Icons.cloud_done,
-                                            size: 15, color: isOffline ? Colors.amberAccent : Colors.greenAccent),
-                                        const SizedBox(width: 4),
-                                        Text(isOffline ? 'OFFLINE' : 'ONLINE',
-                                            style: TextStyle(
-                                                color: isOffline ? Colors.amberAccent : Colors.greenAccent,
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'monospace')),
-                                      ],
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isOffline ? 'OFFLINE' : 'ONLINE',
+                                      style: TextStyle(
+                                        color: isOffline
+                                            ? Colors.amberAccent
+                                            : Colors.greenAccent,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'monospace',
+                                      ),
                                     ),
                                   ],
                                 ),
-                              );
-                            },
-                          ),
-                        ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -671,7 +1018,11 @@ class _HoverIconButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool isLoading;
-  const _HoverIconButton({required this.icon, required this.onTap, this.isLoading = false});
+  const _HoverIconButton({
+    required this.icon,
+    required this.onTap,
+    this.isLoading = false,
+  });
 
   @override
   State<_HoverIconButton> createState() => _HoverIconButtonState();
@@ -698,15 +1049,26 @@ class _HoverIconButtonState extends State<_HoverIconButton> {
                 ? (_isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))
                 : (_isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+            border: Border.all(
+              color: _isDark
+                  ? const Color(0xFF334155)
+                  : const Color(0xFFE2E8F0),
+            ),
           ),
           child: widget.isLoading
               ? SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _isDark ? Colors.white70 : Colors.black87))
-              : Icon(widget.icon, color: _isDark ? Colors.white70 : Colors.black87, size: 18),
+                    strokeWidth: 2,
+                    color: _isDark ? Colors.white70 : Colors.black87,
+                  ),
+                )
+              : Icon(
+                  widget.icon,
+                  color: _isDark ? Colors.white70 : Colors.black87,
+                  size: 18,
+                ),
         ),
       ),
     );
@@ -744,7 +1106,9 @@ class _HoverHistoryCardState extends State<_HoverHistoryCard> {
             border: Border.all(
               color: _isHovered
                   ? const Color(0xFFF43F5E).withOpacity(0.4)
-                  : (_isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                  : (_isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0)),
             ),
           ),
           child: widget.child,
@@ -779,12 +1143,18 @@ class _HoverPreviewButtonState extends State<_HoverPreviewButton> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _isHovered ? const Color(0xFF4A9EFF).withOpacity(0.15) : Colors.transparent,
+            color: _isHovered
+                ? const Color(0xFF4A9EFF).withOpacity(0.15)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(Icons.visibility_outlined,
-              size: 18,
-              color: _isHovered ? const Color(0xFF4A9EFF) : (_isDark ? Colors.white38 : Colors.grey[700])),
+          child: Icon(
+            Icons.visibility_outlined,
+            size: 18,
+            color: _isHovered
+                ? const Color(0xFF4A9EFF)
+                : (_isDark ? Colors.white38 : Colors.grey[700]),
+          ),
         ),
       ),
     );

@@ -1,4 +1,4 @@
-﻿// import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'live_view_screen.dart';
 // import 'recording_screen.dart';
@@ -998,6 +998,7 @@
 //   }
 // }
 
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'live_view_screen.dart';
@@ -1013,6 +1014,7 @@ import 'messages_list_screen.dart';
 import 'message_history_screen.dart';
 import '../services/api_service.dart';
 import '../theme_controller.dart';
+import '../widgets/responsive_content.dart';
 import 'dart:async';
 
 // ---- Restyled palette to match the "tactical fleet management" visual direction ----
@@ -1065,7 +1067,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _startHeartbeat() {
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 20), (timer) async {
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 20), (
+      timer,
+    ) async {
       final success = await _apiService.sendHeartbeat();
       if (!success && mounted) {
         timer.cancel();
@@ -1073,7 +1077,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await prefs.clear();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Session expired. Please log in again.')),
+            const SnackBar(
+              content: Text('Session expired. Please log in again.'),
+            ),
           );
           Navigator.pushReplacement(
             context,
@@ -1112,16 +1118,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // Step 2: Get device detail (battery, storage, signal) for this device
           // Per doc Section 5, item 22: request uses device SN (did/hostbody), not imei
-          final detailResult = await _apiService.getDeviceDetail([firstDevice['did'] ?? '']);
+          final detailResult = await _apiService.getDeviceDetail([
+            firstDevice['did'] ?? '',
+          ]);
 
           if (detailResult['code'] == 200) {
-            final detailData = List<Map<String, dynamic>>.from(detailResult['data'] ?? []);
+            final detailData = List<Map<String, dynamic>>.from(
+              detailResult['data'] ?? [],
+            );
             if (detailData.isNotEmpty) {
               final detail = detailData[0];
               setState(() {
-                _batteryLevel = int.tryParse(detail['electric']?.toString() ?? '0') ?? 0;
-                _storageUsed = (double.tryParse(detail['capacity']?.toString() ?? '0') ?? 0) / 1000;
-                _storageTotal = (double.tryParse(detail['totalcapacity']?.toString() ?? '0') ?? 0) / 1000;
+                _batteryLevel =
+                    int.tryParse(detail['electric']?.toString() ?? '0') ?? 0;
+                _storageUsed =
+                    (double.tryParse(detail['capacity']?.toString() ?? '0') ??
+                        0) /
+                    1000;
+                _storageTotal =
+                    (double.tryParse(
+                          detail['totalcapacity']?.toString() ?? '0',
+                        ) ??
+                        0) /
+                    1000;
                 _signalType = detail['signal_cate']?.toString() ?? '';
                 _signalStrength = detail['signal']?.toString() ?? '';
                 _deviceLat = detail['latitude']?.toString() ?? '';
@@ -1188,11 +1207,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Device Info',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold, color: _isDark ? Colors.white : const Color(0xFF0A1628))),
+                Text(
+                  'Device Info',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _isDark ? Colors.white : const Color(0xFF0A1628),
+                  ),
+                ),
                 IconButton(
-                  icon: Icon(Icons.close, color: _isDark ? Colors.white70 : Colors.black87),
+                  icon: Icon(
+                    Icons.close,
+                    color: _isDark ? Colors.white70 : Colors.black87,
+                  ),
                   onPressed: () => Navigator.pop(context),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -1202,17 +1229,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             _sectionLabel('OFFICER'),
             const SizedBox(height: 8),
-            _infoRow(Icons.badge_outlined, 'Officer', '$_deviceHostname ($_deviceHostcode)'),
+            _infoRow(
+              Icons.badge_outlined,
+              'Officer',
+              '$_deviceHostname ($_deviceHostcode)',
+            ),
             _infoRow(Icons.apartment_outlined, 'Unit', _deviceUnitname),
             const SizedBox(height: 12),
             _sectionLabel('DEVICE STATUS'),
             const SizedBox(height: 8),
             _infoRow(
-              _signalType == 'mobile_signal' ? Icons.signal_cellular_alt : Icons.wifi,
+              _signalType == 'mobile_signal'
+                  ? Icons.signal_cellular_alt
+                  : Icons.wifi,
               'Signal',
               '${_signalType == 'mobile_signal' ? 'Mobile' : 'WiFi'} · Strength $_signalStrength/5',
             ),
-            _infoRow(Icons.my_location_outlined, 'Device Location', '$_deviceLat, $_deviceLng'),
+            _infoRow(
+              Icons.my_location_outlined,
+              'Device Location',
+              '$_deviceLat, $_deviceLng',
+            ),
             _infoRow(Icons.videocam_outlined, 'Device ID', _deviceHostbody),
             _infoRow(Icons.confirmation_number_outlined, 'IMEI', _deviceImei),
             _infoRow(Icons.sim_card_outlined, 'SIM Number', _deviceMobile),
@@ -1224,9 +1261,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _sectionLabel(String text) {
-    return Text(text,
-        style: TextStyle(
-            fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF4A9EFF), letterSpacing: 0.8));
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.bold,
+        color: const Color(0xFF4A9EFF),
+        letterSpacing: 0.8,
+      ),
+    );
   }
 
   void _showAuditLog() {
@@ -1235,7 +1278,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: _isDark ? kSurfaceDark : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Audit Log', style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628))),
+        title: Text(
+          'Audit Log',
+          style: TextStyle(
+            color: _isDark ? Colors.white : const Color(0xFF0A1628),
+          ),
+        ),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView(
@@ -1274,14 +1322,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(action,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13, color: _isDark ? Colors.white : Colors.black87)),
-                Text(detail, style: TextStyle(color: _isDark ? Colors.white54 : Colors.grey, fontSize: 12)),
+                Text(
+                  action,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: _isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                Text(
+                  detail,
+                  style: TextStyle(
+                    color: _isDark ? Colors.white54 : Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(time, style: TextStyle(color: _isDark ? Colors.white54 : Colors.grey, fontSize: 11)),
+          Text(
+            time,
+            style: TextStyle(
+              color: _isDark ? Colors.white54 : Colors.grey,
+              fontSize: 11,
+            ),
+          ),
         ],
       ),
     );
@@ -1293,18 +1358,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: _isDark ? kSurfaceDark : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Pair Camera', style: TextStyle(color: _isDark ? Colors.white : const Color(0xFF0A1628))),
+        title: Text(
+          'Pair Camera',
+          style: TextStyle(
+            color: _isDark ? Colors.white : const Color(0xFF0A1628),
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            Text('Scanning for BWC devices...', style: TextStyle(color: _isDark ? Colors.white70 : Colors.black87)),
+            Text(
+              'Scanning for BWC devices...',
+              style: TextStyle(
+                color: _isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.videocam, color: Color(0xFF4A9EFF)),
-              title: Text('BWC-2024-07', style: TextStyle(color: _isDark ? Colors.white : Colors.black87)),
-              subtitle: Text('Signal: Strong', style: TextStyle(color: _isDark ? Colors.white54 : Colors.grey)),
+              title: Text(
+                'BWC-2024-07',
+                style: TextStyle(
+                  color: _isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              subtitle: Text(
+                'Signal: Strong',
+                style: TextStyle(color: _isDark ? Colors.white54 : Colors.grey),
+              ),
               trailing: ElevatedButton(
                 onPressed: () {
                   setState(() => _cameraConnected = true);
@@ -1343,10 +1426,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: _selectedIndex == 0
           ? _buildHome()
           : _selectedIndex == 1
-              ? const VideosListScreen()
-              : _selectedIndex == 2
-                  ? const UploadScreen()
-                  : const SettingsScreen(),
+          ? const VideosListScreen()
+          : _selectedIndex == 2
+          ? const UploadScreen()
+          : const SettingsScreen(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: _isDark ? kSurfaceDark : Colors.white,
@@ -1394,26 +1477,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHome() {
+    final isWideDesktop = MediaQuery.of(context).size.width > 960;
     return SafeArea(
       child: Column(
         children: [
           _buildTopAppBar(),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildGradientBanner(),
-                  const SizedBox(height: 14),
-                  _buildActionCardsRow(),
-                  const SizedBox(height: 14),
-                  _buildStorageCard(),
-                  const SizedBox(height: 14),
-                  _buildAdminShortcuts(),
-                  const SizedBox(height: 20),
+            child: Stack(
+              children: [
+                if (isWideDesktop) ...[
+                  Positioned(
+                    left: -160,
+                    top: 20,
+                    child: IgnorePointer(
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
+                        child: Container(
+                          width: 420,
+                          height: 420,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB).withOpacity(0.14),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: -160,
+                    top: 220,
+                    child: IgnorePointer(
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
+                        child: Container(
+                          width: 420,
+                          height: 420,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB).withOpacity(0.14),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
-              ),
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: ResponsiveContent(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildGradientBanner(),
+                        const SizedBox(height: 14),
+                        _buildActionCardsRow(),
+                        const SizedBox(height: 14),
+                        _buildStorageCard(),
+                        const SizedBox(height: 14),
+                        _buildAdminShortcuts(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1429,7 +1555,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: _isDark ? kBannerStart : Colors.white,
         border: Border(
-          bottom: BorderSide(color: _isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2)),
+          bottom: BorderSide(
+            color: _isDark
+                ? Colors.white.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.2),
+          ),
         ),
       ),
       child: Row(
@@ -1440,7 +1570,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             padding: const EdgeInsets.all(6),
             child: const Icon(Icons.shield, color: kBannerStart),
@@ -1453,28 +1589,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('BWC MOBILE',
-                        style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.3,
-                            color: _isDark ? Colors.white : kBannerStart)),
+                    Text(
+                      'BWC MOBILE',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                        color: _isDark ? Colors.white : kBannerStart,
+                      ),
+                    ),
                     const SizedBox(width: 6),
-                    Text('v1.0.0',
-                        style: TextStyle(fontSize: 11, color: _isDark ? const Color(0xFF7FB3FF) : Colors.blueGrey)),
+                    Text(
+                      'v1.0.0',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: _isDark
+                            ? const Color(0xFF7FB3FF)
+                            : Colors.blueGrey,
+                      ),
+                    ),
                   ],
                 ),
-                Text('Tactical Fleet Management',
-                    style: TextStyle(fontSize: 10, color: _isDark ? const Color(0xFF7FB3FF) : Colors.blueGrey)),
+                Text(
+                  'Tactical Fleet Management',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: _isDark ? const Color(0xFF7FB3FF) : Colors.blueGrey,
+                  ),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('Officer $_username',
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600, color: _isDark ? Colors.white : Colors.black87)),
+              Text(
+                'Officer $_username',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _isDark ? Colors.white : Colors.black87,
+                ),
+              ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1482,10 +1638,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     width: 6,
                     height: 6,
                     margin: const EdgeInsets.only(right: 4),
-                    decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(
+                      color: Colors.greenAccent,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                  const Text('FIELD ON-DUTY',
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.greenAccent)),
+                  const Text(
+                    'FIELD ON-DUTY',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.greenAccent,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -1496,7 +1661,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             backgroundColor: const Color(0xFF4A9EFF),
             child: Text(
               _username.isNotEmpty ? _username[0].toUpperCase() : 'O',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
           ),
         ],
@@ -1516,7 +1685,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 16, offset: const Offset(0, 8))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1527,14 +1702,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.videocam, color: Color(0xFFA9C6FF), size: 18),
+                    const Icon(
+                      Icons.videocam,
+                      color: Color(0xFFA9C6FF),
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
-                    Text('ACTIVE CAMERA',
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1,
-                            color: Colors.white.withOpacity(0.75))),
+                    Text(
+                      'ACTIVE CAMERA',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                        color: Colors.white.withOpacity(0.75),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -1542,13 +1724,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   TextSpan(
                     children: [
                       TextSpan(
-                        text: 'BWC-${_deviceHostbody.isNotEmpty ? _deviceHostbody : "2024-07"} ',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        text:
+                            'BWC-${_deviceHostbody.isNotEmpty ? _deviceHostbody : "2024-07"} ',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       TextSpan(
                         text: '$_batteryLevel% Battery',
                         style: TextStyle(
-                            fontSize: 12, color: Colors.white.withOpacity(0.7), fontFamily: 'monospace'),
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.7),
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ],
                   ),
@@ -1560,7 +1750,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     _pillButton(
                       label: _cameraConnected ? 'Disconnect' : 'Reconnect',
-                      onTap: () => setState(() => _cameraConnected = !_cameraConnected),
+                      onTap: () =>
+                          setState(() => _cameraConnected = !_cameraConnected),
                     ),
                     _pillButton(
                       label: 'Recalibrate',
@@ -1585,7 +1776,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onTap: () => setState(() => _selectedIndex = 3),
               ),
               const SizedBox(height: 8),
-              _circleIconButton(icon: Icons.logout, onTap: _logout, dangerHover: true),
+              _circleIconButton(
+                icon: Icons.logout,
+                onTap: _logout,
+                dangerHover: true,
+              ),
             ],
           ),
         ],
@@ -1593,7 +1788,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _pillButton({required String label, required VoidCallback onTap, Color? color, Color? textColor}) {
+  Widget _pillButton({
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+    Color? textColor,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1605,19 +1805,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Text(
           label.toUpperCase(),
           style: TextStyle(
-              fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: textColor ?? Colors.white),
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+            color: textColor ?? Colors.white,
+          ),
         ),
       ),
     );
   }
 
-  Widget _circleIconButton({required IconData icon, required VoidCallback onTap, bool dangerHover = false}) {
+  Widget _circleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    bool dangerHover = false,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 38,
         height: 38,
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), shape: BoxShape.circle),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
         child: Icon(icon, color: Colors.white, size: 18),
       ),
     );
@@ -1632,7 +1843,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Live Feed',
             subtitle: 'RTSP Streaming',
             icon: Icons.videocam,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveViewScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LiveViewScreen()),
+            ),
           ),
         ),
         const SizedBox(width: 14),
@@ -1641,7 +1855,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'GPS Tracking',
             subtitle: 'Real-time GIS',
             icon: Icons.location_on,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveTrackingScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LiveTrackingScreen(),
+              ),
+            ),
           ),
         ),
       ],
@@ -1661,8 +1880,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           color: _isDark ? kBannerStart : Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.2)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4))],
+          border: Border.all(
+            color: _isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.grey.withOpacity(0.2),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1670,22 +1899,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold, color: _isDark ? Colors.white : Colors.black87)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(subtitle,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: _isDark ? const Color(0xFF9FC1FF) : kBannerStart)),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: _isDark ? const Color(0xFF9FC1FF) : kBannerStart,
+                  ),
+                ),
               ],
             ),
             Container(
               width: 42,
               height: 42,
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
-              child: Icon(icon, color: _isDark ? Colors.white : kBannerStart, size: 22),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                icon,
+                color: _isDark ? Colors.white : kBannerStart,
+                size: 22,
+              ),
             ),
           ],
         ),
@@ -1702,7 +1946,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: _isDark ? kSurfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.2)),
+        border: Border.all(
+          color: _isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.grey.withOpacity(0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1710,23 +1958,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('DEVICE STORAGE',
-                  style: TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1, color: const Color(0xFF4A9EFF))),
-              Text('BWC Hardware NVMe',
-                  style: TextStyle(fontSize: 10, color: _isDark ? Colors.white38 : Colors.grey, fontFamily: 'monospace')),
+              Text(
+                'DEVICE STORAGE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                  color: const Color(0xFF4A9EFF),
+                ),
+              ),
+              Text(
+                'BWC Hardware NVMe',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: _isDark ? Colors.white38 : Colors.grey,
+                  fontFamily: 'monospace',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Used Space',
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600, color: _isDark ? Colors.white : Colors.black87)),
-              Text('${_storageUsed.toStringAsFixed(1)} / ${_storageTotal.toStringAsFixed(1)} GB',
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4A9EFF), fontFamily: 'monospace')),
+              Text(
+                'Used Space',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Text(
+                '${_storageUsed.toStringAsFixed(1)} / ${_storageTotal.toStringAsFixed(1)} GB',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A9EFF),
+                  fontFamily: 'monospace',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1734,7 +2005,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: usedPercent,
-              backgroundColor: _isDark ? Colors.white.withOpacity(0.1) : Colors.grey[200],
+              backgroundColor: _isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.grey[200],
               valueColor: AlwaysStoppedAnimation<Color>(
                 usedPercent > 0.8 ? Colors.red : const Color(0xFF4A9EFF),
               ),
@@ -1745,7 +2018,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(
             'Estimated 12 hours recording remaining at 1080p high definition',
             style: TextStyle(
-                fontSize: 10, fontStyle: FontStyle.italic, color: _isDark ? Colors.white38 : Colors.grey),
+              fontSize: 10,
+              fontStyle: FontStyle.italic,
+              color: _isDark ? Colors.white38 : Colors.grey,
+            ),
           ),
         ],
       ),
@@ -1760,13 +2036,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: _isDark ? kSurfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.2)),
+        border: Border.all(
+          color: _isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.grey.withOpacity(0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('ADMIN SHORTCUTS & FLEET TOOLS',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1, color: const Color(0xFF4A9EFF))),
+          Text(
+            'ADMIN SHORTCUTS & FLEET TOOLS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+              color: const Color(0xFF4A9EFF),
+            ),
+          ),
           const SizedBox(height: 14),
           GridView.count(
             crossAxisCount: 2,
@@ -1780,13 +2067,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.people,
                 label: 'Manage Officers',
                 color: Colors.greenAccent,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const OfficerListScreen())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OfficerListScreen(),
+                  ),
+                ),
               ),
               _adminTile(
                 icon: Icons.message,
                 label: 'Dispatch Messages',
                 color: Colors.purpleAccent,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MessagesListScreen())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MessagesListScreen(),
+                  ),
+                ),
               ),
               _adminTile(
                 icon: Icons.description,
@@ -1804,13 +2101,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icons.history,
                 label: 'Message History',
                 color: Colors.pinkAccent,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MessageHistoryScreen())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MessageHistoryScreen(),
+                  ),
+                ),
               ),
               _adminTile(
                 icon: Icons.videocam,
                 label: 'Device Fleet',
                 color: Colors.indigoAccent,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DeviceListScreen())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DeviceListScreen(),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1830,16 +2137,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: _isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.08),
+          color: _isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.grey.withOpacity(0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.15)),
+          border: Border.all(
+            color: _isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.grey.withOpacity(0.15),
+          ),
         ),
         child: Row(
           children: [
             Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: Icon(icon, color: color, size: 18),
             ),
             const SizedBox(width: 10),
@@ -1847,9 +2163,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Text(
                 label,
                 style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _isDark ? Colors.white : Colors.black87),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _isDark ? Colors.white : Colors.black87,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -1864,16 +2181,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: _isDark ? Colors.white38 : Colors.grey[500]),
+          Icon(
+            icon,
+            size: 16,
+            color: _isDark ? Colors.white38 : Colors.grey[500],
+          ),
           const SizedBox(width: 8),
-          Text('$label: ', style: TextStyle(fontSize: 12, color: _isDark ? Colors.white54 : Colors.grey[600])),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 12,
+              color: _isDark ? Colors.white54 : Colors.grey[600],
+            ),
+          ),
           Expanded(
             child: Text(
               value,
               style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _isDark ? Colors.white : const Color(0xFF0A1628)),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _isDark ? Colors.white : const Color(0xFF0A1628),
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),

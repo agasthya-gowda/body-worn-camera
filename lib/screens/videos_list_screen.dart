@@ -52,11 +52,11 @@ class _VideosListScreenState extends State<VideosListScreen> {
 
   List<Map<String, dynamic>> get _filteredVideos {
     return _videos.where((video) {
-      final matchesSearch = video['name']
-          .toString()
-          .toLowerCase()
-          .contains(_searchController.text.toLowerCase());
-      final matchesFilter = _filterType == 'All' ||
+      final matchesSearch = video['name'].toString().toLowerCase().contains(
+        _searchController.text.toLowerCase(),
+      );
+      final matchesFilter =
+          _filterType == 'All' ||
           (_filterType == 'Evidence' && video['isEvidence']) ||
           (_filterType == 'Uploaded' && video['isUploaded']);
       return matchesSearch && matchesFilter;
@@ -79,93 +79,94 @@ class _VideosListScreenState extends State<VideosListScreen> {
         automaticallyImplyLeading: false,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _searchController,
-                  onChanged: (value) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: 'Search recordings...',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: ['All', 'Evidence', 'Uploaded'].map((filter) {
-                    final isSelected = _filterType == filter;
-                    return GestureDetector(
-                      onTap: () => setState(() => _filterType = filter),
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFF1A3A6B)
-                              : Colors.grey[200],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          filter,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.grey[700],
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() {}),
+                    decoration: InputDecoration(
+                      hintText: 'Search recordings...',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: _filteredVideos.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.video_library_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No videos found',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: ['All', 'Evidence', 'Uploaded'].map((filter) {
+                      final isSelected = _filterType == filter;
+                      return GestureDetector(
+                        onTap: () => setState(() => _filterType = filter),
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFF1A3A6B)
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            filter,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.grey[700],
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _filteredVideos.length,
-                    itemBuilder: (context, index) {
-                      final video = _filteredVideos[index];
-                      return _buildVideoItem(video);
-                    },
+                      );
+                    }).toList(),
                   ),
-          ),
-        ],
+                ],
+              ),
+            ),
+            Expanded(
+              child: _filteredVideos.isEmpty
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.video_library_outlined,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No videos found',
+                            style: TextStyle(color: Colors.grey, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _filteredVideos.length,
+                      itemBuilder: (context, index) {
+                        final video = _filteredVideos[index];
+                        return _buildVideoItem(video);
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -205,20 +206,14 @@ class _VideosListScreenState extends State<VideosListScreen> {
               bottom: 2,
               right: 2,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.black87,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   video['duration'],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 9),
                 ),
               ),
             ),
@@ -240,10 +235,7 @@ class _VideosListScreenState extends State<VideosListScreen> {
             if (video['isEvidence'])
               Container(
                 margin: const EdgeInsets.only(left: 4),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.red[50],
                   borderRadius: BorderRadius.circular(4),
@@ -260,10 +252,7 @@ class _VideosListScreenState extends State<VideosListScreen> {
             if (video['isUploaded'])
               Container(
                 margin: const EdgeInsets.only(left: 4),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.green[50],
                   borderRadius: BorderRadius.circular(4),
@@ -281,10 +270,7 @@ class _VideosListScreenState extends State<VideosListScreen> {
         ),
         subtitle: Text(
           '${video['date']} · ${video['quality']} · ${video['size']}',
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
@@ -324,10 +310,7 @@ class _VideosListScreenState extends State<VideosListScreen> {
                 children: [
                   Icon(Icons.delete, color: Colors.red, size: 18),
                   SizedBox(width: 8),
-                  Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.red),
-                  ),
+                  Text('Delete', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
