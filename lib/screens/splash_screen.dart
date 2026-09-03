@@ -1,6 +1,81 @@
-import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+
+// ── Brand constants ──
+const Color _kBrandNavy = Color(0xFF0A1628);
+
+// Exact cubic-bezier curves from the reference animation
+const Curve _kEaseOutQuint = Cubic(0.22, 1.0, 0.36, 1.0);
+const Curve _kMaterialStandard = Cubic(0.4, 0.0, 0.2, 1.0);
+const Curve _kEaseInAccelerate = Cubic(0.55, 0.055, 0.675, 0.19);
+
+enum _SplashPhase {
+  blankWhite,
+  fallingLines,
+  ballAndText,
+  assembledRest,
+  logoZoom,
+}
+
+class _WaferBar {
+  final double width;
+  final double y;
+  final Color color;
+  final Color darkColor;
+  const _WaferBar({
+    required this.width,
+    required this.y,
+    required this.color,
+    required this.darkColor,
+  });
+}
+
+// 7 layered wafer bars from top (widest, light blue) to bottom (narrowest, dark navy)
+const List<_WaferBar> _kWaferBars = [
+  _WaferBar(
+    width: 140,
+    y: 72,
+    color: Color(0xFF68D8D6),
+    darkColor: Color(0xFF60C5F8),
+  ),
+  _WaferBar(
+    width: 126,
+    y: 86,
+    color: Color(0xFF4EA8DE),
+    darkColor: Color(0xFF3B86F7),
+  ),
+  _WaferBar(
+    width: 112,
+    y: 100,
+    color: Color(0xFF3A86FF),
+    darkColor: Color(0xFF2563EB),
+  ),
+  _WaferBar(
+    width: 98,
+    y: 114,
+    color: Color(0xFF1D63E8),
+    darkColor: Color(0xFF1D4ED8),
+  ),
+  _WaferBar(
+    width: 84,
+    y: 128,
+    color: Color(0xFF134EC2),
+    darkColor: Color(0xFF1E40AF),
+  ),
+  _WaferBar(
+    width: 70,
+    y: 142,
+    color: Color(0xFF0D3B94),
+    darkColor: Color(0xFF1A365D),
+  ),
+  _WaferBar(
+    width: 56,
+    y: 156,
+    color: Color(0xFF061C48),
+    darkColor: Color(0xFF102A43),
+  ),
+];
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,257 +86,368 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _introController;
-  late final Animation<double> _introOpacity;
-  late final Animation<double> _introScale;
-  late final AnimationController _loopController;
+  _SplashPhase _phase = _SplashPhase.blankWhite;
+  final List<Timer> _timers = [];
+
+  // Bars: staggered fall, each 650ms, 180ms apart -> total span 1730ms
+  late final AnimationController _linesController;
+
+  // Ball + Wordmark: both 850ms, same ease
+  late final AnimationController _ballTextController;
+
+  // Zoom-out reveal: 1100ms umbrella controlling bg color, wave, logo scale/opacity
+  late final AnimationController _zoomController;
+  late final Animation<double> _bgFraction;
+  late final Animation<double> _waveScale;
+  late final Animation<double> _waveOpacity;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
+
+  bool get _barsVisible => _phase.index >= _SplashPhase.fallingLines.index;
+  bool get _ballTextVisible => _phase.index >= _SplashPhase.ballAndText.index;
+  bool get _isDark => _phase == _SplashPhase.logoZoom;
 
   @override
   void initState() {
     super.initState();
 
-    _introController = AnimationController(
+    _linesController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 1730),
     );
-    _introOpacity = CurvedAnimation(
-      parent: _introController,
-      curve: Curves.easeOut,
-    );
-    _introScale = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _introController, curve: Curves.easeOut));
-    _introController.forward();
-
-    _loopController = AnimationController(
+    _ballTextController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat();
+      duration: const Duration(milliseconds: 850),
+    );
+    _zoomController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
+    _bgFraction = CurvedAnimation(
+      parent: _zoomController,
+      curve: const Interval(0.0, 0.8636, curve: _kMaterialStandard),
+    );
+    _waveScale = Tween<double>(begin: 0.2, end: 32.0).animate(
+      CurvedAnimation(
+        parent: _zoomController,
+        curve: const Interval(0.0, 0.9545, curve: _kMaterialStandard),
+      ),
+    );
+    _waveOpacity = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _zoomController,
+        curve: const Interval(0.0, 0.9545, curve: _kMaterialStandard),
+      ),
+    );
+    _logoScale = Tween<double>(begin: 1.0, end: 30.0).animate(
+      CurvedAnimation(
+        parent: _zoomController,
+        curve: const Interval(0.0, 1.0, curve: _kEaseInAccelerate),
+      ),
+    );
+    _logoOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _zoomController,
+        curve: const Interval(0.0909, 0.9545, curve: Curves.linear),
+      ),
+    );
+
+    _runSequence();
+  }
+
+  void _runSequence() {
+    // 0ms: blank white (initial state already set)
+
+    // 500ms: bars start falling
+    _timers.add(
+      Timer(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        setState(() => _phase = _SplashPhase.fallingLines);
+        _linesController.forward(from: 0);
+      }),
+    );
+
+    // 2400ms: ball drops + wordmark rises
+    _timers.add(
+      Timer(const Duration(milliseconds: 2400), () {
+        if (!mounted) return;
+        setState(() => _phase = _SplashPhase.ballAndText);
+        _ballTextController.forward(from: 0);
+      }),
+    );
+
+    // 3350ms: assembled logo rests
+    _timers.add(
+      Timer(const Duration(milliseconds: 3350), () {
+        if (!mounted) return;
+        setState(() => _phase = _SplashPhase.assembledRest);
+      }),
+    );
+
+    // 4550ms: zoom + background transition to navy
+    _timers.add(
+      Timer(const Duration(milliseconds: 4550), () {
+        if (!mounted) return;
+        setState(() => _phase = _SplashPhase.logoZoom);
+        _zoomController.forward(from: 0);
+      }),
+    );
+
+    // 5650ms: reveal login directly (no extra fade, matches reference)
+    _timers.add(
+      Timer(const Duration(milliseconds: 5650), () {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          PageRouteBuilder(
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const LoginScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) => child,
+          ),
         );
-      }
-    });
+      }),
+    );
   }
 
   @override
   void dispose() {
-    _introController.dispose();
-    _loopController.dispose();
+    for (final t in _timers) {
+      t.cancel();
+    }
+    _linesController.dispose();
+    _ballTextController.dispose();
+    _zoomController.dispose();
     super.dispose();
   }
 
-  Widget _bouncingDot(double delayFraction) {
+  @override
+  Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _loopController,
+      animation: Listenable.merge([
+        _linesController,
+        _ballTextController,
+        _zoomController,
+      ]),
       builder: (context, child) {
-        final t = (_loopController.value + delayFraction) % 1.0;
-        final bounce = (t < 0.5)
-            ? Curves.easeOut.transform(t * 2)
-            : Curves.easeIn.transform(1 - (t - 0.5) * 2);
-        return Transform.translate(
-          offset: Offset(0, -8 * bounce),
-          child: child,
+        final bgColor = _phase == _SplashPhase.logoZoom
+            ? Color.lerp(Colors.white, _kBrandNavy, _bgFraction.value)!
+            : Colors.white;
+
+        return Scaffold(
+          backgroundColor: bgColor,
+          body: SizedBox.expand(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // ── Radial dark expansion wave (only during logoZoom) ──
+                if (_phase == _SplashPhase.logoZoom)
+                  Opacity(
+                    opacity: _waveOpacity.value.clamp(0.0, 1.0),
+                    child: Transform.scale(
+                      scale: _waveScale.value,
+                      child: Container(
+                        width: 180,
+                        height: 180,
+                        decoration: const BoxDecoration(
+                          color: _kBrandNavy,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // ── Logo choreography stage ──
+                Opacity(
+                  opacity: _phase == _SplashPhase.logoZoom
+                      ? _logoOpacity.value.clamp(0.0, 1.0)
+                      : 1.0,
+                  child: Transform.scale(
+                    scale: _phase == _SplashPhase.logoZoom
+                        ? _logoScale.value
+                        : 1.0,
+                    child: Transform.scale(
+                      scale: 1.35, // 'lg' size factor from reference
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildIcon(),
+                          const SizedBox(height: 12),
+                          _buildWordmark(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
-      child: Container(
-        width: 8,
-        height: 8,
-        decoration: const BoxDecoration(
-          color: Color(0xFF60A5FA),
-          shape: BoxShape.circle,
+    );
+  }
+
+  Widget _buildIcon() {
+    return SizedBox(
+      width: 180,
+      height: 185,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Ambient glow
+          Positioned(
+            left: 10,
+            top: 10,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF38BDF8).withOpacity(0.30),
+                    const Color(0xFF2563EB).withOpacity(0.14),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.5, 0.75],
+                ),
+              ),
+            ),
+          ),
+
+          // 7 wafer bars — fall in staggered from top
+          for (int i = 0; i < _kWaferBars.length; i++) _buildBar(i),
+
+          // Top orb — falls after bars
+          _buildOrb(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBar(int idx) {
+    final bar = _kWaferBars[idx];
+    final startFraction = (idx * 180) / 1730;
+    final endFraction = (idx * 180 + 650) / 1730;
+    final t = _barsVisible
+        ? CurvedAnimation(
+            parent: _linesController,
+            curve: Interval(
+              startFraction.clamp(0.0, 1.0),
+              endFraction.clamp(0.0, 1.0),
+              curve: _kEaseOutQuint,
+            ),
+          ).value
+        : 0.0;
+
+    final dy = (1 - t) * -650;
+    final x = 90 - bar.width / 2;
+
+    return Positioned(
+      left: x,
+      top: bar.y + dy,
+      child: Opacity(
+        opacity: t.clamp(0.0, 1.0),
+        child: Container(
+          width: bar.width,
+          height: 8.5,
+          decoration: BoxDecoration(
+            color: _isDark ? bar.darkColor : bar.color,
+            borderRadius: BorderRadius.circular(4.25),
+          ),
         ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    return Scaffold(
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: size.width,
-            height: size.height,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF0A1628),
-                  Color(0xFF10223D),
-                  Color(0xFF1A3A6B),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+  Widget _buildOrb() {
+    final t = _ballTextVisible
+        ? CurvedAnimation(
+            parent: _ballTextController,
+            curve: _kEaseOutQuint,
+          ).value
+        : 0.0;
+    final dy = (1 - t) * -700;
+
+    return Positioned(
+      left: 66,
+      top: 12 + dy,
+      child: Opacity(
+        opacity: t.clamp(0.0, 1.0),
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: _isDark
+                  ? const [
+                      Color(0xFFA5F3FC),
+                      Color(0xFF67E8F9),
+                      Color(0xFF38BDF8),
+                    ]
+                  : const [
+                      Color(0xFF38BDF8),
+                      Color(0xFF0EA5E9),
+                      Color(0xFF0284C7),
+                    ],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF38BDF8).withOpacity(0.4),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ],
           ),
-          IgnorePointer(
-            child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-              child: Container(
-                width: size.width * 0.85 < 320 ? size.width * 0.85 : 320,
-                height: size.width * 0.85 < 320 ? size.width * 0.85 : 320,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withOpacity(0.18),
-                  shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWordmark() {
+    final t = _ballTextVisible
+        ? CurvedAnimation(
+            parent: _ballTextController,
+            curve: _kEaseOutQuint,
+          ).value
+        : 0.0;
+    final dy = (1 - t) * 450;
+
+    return Opacity(
+      opacity: t.clamp(0.0, 1.0),
+      child: Transform.translate(
+        offset: Offset(0, dy),
+        child: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Chip',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w500,
+                  color: _isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ),
-            ),
-          ),
-          FadeTransition(
-            opacity: _introOpacity,
-            child: ScaleTransition(
-              scale: _introScale,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 96,
-                    height: 96,
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF1A3A6B), Color(0xFF3B82F6)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1E3A8A).withOpacity(0.5),
-                          blurRadius: 28,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0A1628),
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(
-                            Icons.shield_outlined,
-                            size: 48,
-                            color: Color(0xFF60A5FA),
-                          ),
-                          const Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: Icon(
-                              Icons.videocam,
-                              size: 22,
-                              color: Color(0xFFFBBF24),
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: AnimatedBuilder(
-                              animation: _loopController,
-                              builder: (context, child) {
-                                final pulse =
-                                    (0.5 +
-                                            0.5 *
-                                                (1 -
-                                                    (_loopController.value -
-                                                                0.5)
-                                                            .abs() *
-                                                        2))
-                                        .clamp(0.35, 1.0);
-                                return Opacity(opacity: pulse, child: child);
-                              },
-                              child: const Icon(
-                                Icons.podcasts,
-                                size: 16,
-                                color: Color(0xFF34D399),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  RichText(
-                    text: const TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'BWC ',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'MOBILE',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w300,
-                            color: Color(0xFF60A5FA),
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'BODY WORN CAMERA • TACTICAL EVIDENCE NETWORK',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: const Color(0xFF93C5FD).withOpacity(0.8),
-                      letterSpacing: 1.4,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              TextSpan(
+                text: 'Scape',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                  color: _isDark ? Colors.white : _kBrandNavy,
+                ),
               ),
-            ),
+            ],
           ),
-          Positioned(
-            bottom: 48,
-            child: FadeTransition(
-              opacity: _introOpacity,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _bouncingDot(0.0),
-                      const SizedBox(width: 6),
-                      _bouncingDot(0.15),
-                      const SizedBox(width: 6),
-                      _bouncingDot(0.3),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'CHIPSCAPE SECURITY SYSTEMS',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: const Color(0xFFBFDBFE).withOpacity(0.6),
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
