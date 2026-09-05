@@ -114,11 +114,16 @@ class ApiService {
   }
 
   // ---------------- ONLINE DEVICE LIST ----------------
+  // Per doc Section 6 "Online device status": POST /rest/other/unitjson/gdlist
+  // Body: {"bh": "bh", "text": "dname"} -- both fields required with the doc's
+  // literal fixed values (not real data, just constant strings the doc specifies).
+  // Note: pe_signals omitted per vendor's confirmation (internal use only)
   Future<Map<String, dynamic>> getOnlineDevices() async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/rest/other/unitjson/gdlist"),
         headers: _authHeaders(),
+        body: jsonEncode({"bh": "bh", "text": "dname"}),
       );
       return jsonDecode(response.body);
     } catch (e) {

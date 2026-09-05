@@ -1754,7 +1754,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           setState(() => _cameraConnected = !_cameraConnected),
                     ),
                     _pillButton(
-                      label: 'Recalibrate',
+                      label: 'Divice info',
                       color: Colors.amber,
                       textColor: kBgDark,
                       onTap: _showDeviceInfoSheet,
