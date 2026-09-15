@@ -811,7 +811,9 @@ class _OfficerListScreenState extends State<OfficerListScreen> {
                                           Row(
                                             children: [
                                               Text(
-                                                _typeLabel(officer['type']),
+                                                _typeLabel(
+                                                  officer['type']?.toString(),
+                                                ),
                                                 style: TextStyle(
                                                   color: isDark
                                                       ? Colors.white70

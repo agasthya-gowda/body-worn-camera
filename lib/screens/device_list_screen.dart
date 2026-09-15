@@ -352,12 +352,12 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     final textFaint = isDark ? Colors.white38 : Colors.grey[500];
     final textMuted = isDark ? Colors.white54 : Colors.grey[700];
 
-    final bhController = TextEditingController(text: 'ChipScape Police Dept');
+    final bhController = TextEditingController();
     final hostbodyController = TextEditingController();
     final officerNameController = TextEditingController();
     final productFirmController = TextEditingController();
     final capacityController = TextEditingController();
-    final typesnController = TextEditingController(text: '12');
+    final typesnController = TextEditingController();
     final versionController = TextEditingController();
     String recorderType = '1';
     bool isSaving = false;
@@ -1205,7 +1205,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                                               .text
                                                               .trim()
                                                               .isEmpty
-                                                          ? 'Unassigned'
+                                                          ? null
                                                           : officerNameController
                                                                 .text
                                                                 .trim(),
@@ -1505,7 +1505,9 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                           itemCount: _devices.length,
                           itemBuilder: (context, index) {
                             final device = _devices[index];
-                            final stateColor = _stateColor(device['state']);
+                            final stateColor = _stateColor(
+                              device['state']?.toString(),
+                            );
                             return _HoverDeviceCard(
                               onTap: () => _showDeviceDetailSheet(device),
                               child: Container(
@@ -1576,7 +1578,10 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                                                   ),
                                                 ),
                                                 child: Text(
-                                                  _stateLabel(device['state']),
+                                                  _stateLabel(
+                                                    device['state']
+                                                        ?.toString(),
+                                                  ),
                                                   style: TextStyle(
                                                     color: stateColor,
                                                     fontSize: 10,

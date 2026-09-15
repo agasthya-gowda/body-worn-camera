@@ -91,7 +91,7 @@
 //         if (devices.isNotEmpty) {
 //           final firstDevice = devices[0];
 //           setState(() {
-//             _cameraConnected = firstDevice['lineon'] == 1;
+//             _cameraConnected = firstDevice['lineon']?.toString() == '1';
 //             _gpsActive = true;
 //           });
 
@@ -1112,7 +1112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (devices.isNotEmpty) {
           final firstDevice = devices[0];
           setState(() {
-            _cameraConnected = firstDevice['lineon'] == 1;
+            _cameraConnected = firstDevice['lineon']?.toString() == '1';
             _gpsActive = true;
           });
 
@@ -1131,16 +1131,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               setState(() {
                 _batteryLevel =
                     int.tryParse(detail['electric']?.toString() ?? '0') ?? 0;
-                _storageUsed =
-                    (double.tryParse(detail['capacity']?.toString() ?? '0') ??
-                        0) /
-                    1000;
+                // Real server returns `capacity` as a string with a unit suffix
+                // (e.g. "116.42G") and `totalcapacity` as a plain number - both
+                // already in GB, not MB, so no /1000 conversion is needed here.
+                _storageUsed = double.tryParse(
+                      RegExp(r'[\d.]+').stringMatch(
+                            detail['capacity']?.toString() ?? '',
+                          ) ??
+                          '0',
+                    ) ??
+                    0;
                 _storageTotal =
-                    (double.tryParse(
-                          detail['totalcapacity']?.toString() ?? '0',
-                        ) ??
-                        0) /
-                    1000;
+                    double.tryParse(
+                      detail['totalcapacity']?.toString() ?? '0',
+                    ) ??
+                    0;
                 _signalType = detail['signal_cate']?.toString() ?? '';
                 _signalStrength = detail['signal']?.toString() ?? '';
                 _deviceLat = detail['latitude']?.toString() ?? '';
@@ -1843,10 +1848,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Live Feed',
             subtitle: 'RTSP Streaming',
             icon: Icons.videocam,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LiveViewScreen()),
-            ),
+            onTap: () {
+              if (_deviceHostbody.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No active camera to view yet')),
+                );
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LiveViewScreen(
+                    hostbody: _deviceHostbody,
+                    imei: _deviceImei,
+                    officerName: _deviceHostname,
+                  ),
+                ),
+              );
+            },
           ),
         ),
         const SizedBox(width: 14),

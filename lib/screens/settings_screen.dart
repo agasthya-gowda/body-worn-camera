@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
+import 'ad_login_demo_screen.dart';
 import '../services/api_service.dart';
 import '../theme_controller.dart';
 import '../widgets/responsive_content.dart';
@@ -285,6 +286,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             const SnackBar(
                               content: Text('Connect USB cable to BWC device'),
                               backgroundColor: Color(0xFF1E3A5F),
+                            ),
+                          );
+                        },
+                      ),
+                    ]),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('Active Directory'),
+                    _buildSettingsCard([
+                      _buildNavigationTile(
+                        icon: Icons.badge_outlined,
+                        label: 'AD Login Demo',
+                        subtitle: 'Verify a username/password against AD',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AdLoginDemoScreen(),
                             ),
                           );
                         },

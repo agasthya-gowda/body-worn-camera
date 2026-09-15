@@ -1,10 +1,17 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fvp/fvp.dart' as fvp;
 import 'screens/splash_screen.dart';
 import 'theme_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Adds RTSP/FFmpeg-backed decoding to video_player - no web implementation
+  // exists, so live camera video only plays on Android/iOS/desktop for now.
+  if (!kIsWeb) {
+    fvp.registerWith();
+  }
   await ThemeController.instance.load();
   runApp(const BWCApp());
 }

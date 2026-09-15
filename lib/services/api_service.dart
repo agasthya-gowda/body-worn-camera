@@ -1,12 +1,42 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
+import 'http_client/http_client_factory.dart';
+
 class ApiService {
-  // TODO: Replace with real server IP/domain once received from CEO/vendor
-  static const String baseUrl = "http://localhost:3000";
+  // On Web only, this goes through a local reverse proxy (tools/ims_proxy.py ->
+  // real IMS server at 116.73.243.111:8443) instead of hitting the real server
+  // directly. Reason: the server's PHPSESSID cookie has no SameSite/Secure
+  // attributes, so Chrome's default SameSite=Lax policy silently drops it on
+  // genuinely cross-site requests (this app on one origin, the server on
+  // another) - confirmed directly via a real browser fetch() call, not just
+  // curl. Routing through a same-host local proxy (only the port differs, and
+  // SameSite is scheme+host based, not port based) makes the cookie same-site
+  // from the browser's point of view, so it's sent correctly with no
+  // server-side change needed. Run the proxy with `python3 tools/ims_proxy.py`
+  // before starting the Web app.
+  //
+  // Native (Android/iOS/desktop) apps have no browser cookie jar or SameSite
+  // policy to work around, so they talk to the real server directly over
+  // HTTPS - see http_client/client_stub.dart for how the self-signed cert is
+  // handled there.
+  static const String baseUrl =
+      kIsWeb ? "http://localhost:9090" : "https://116.73.243.111:8443";
+
+  // Singleton: every screen calling ApiService() must share the same
+  // _sessionCookie. On Web this didn't matter because the browser's own
+  // cookie jar sends the session cookie automatically regardless of which
+  // Dart object made the request - but on native there's no such thing, so a
+  // fresh instance per screen meant only the screen that logged in ever had
+  // a cookie, and every other screen's requests were silently unauthenticated.
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
+  ApiService._internal();
 
   String? _sessionCookie;
+  final http.Client _client = createHttpClient();
 
   // ---------------- LOGIN ----------------
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -27,13 +57,19 @@ class ApiService {
       String loginInfo = base64Encode(utf8.encode(jsonString));
 
       // Step 4: Send request
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/index/login/login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"login_info": loginInfo}),
       );
 
       // Step 5: Extract PHPSESSID from cookies (parse clean value, per doc para 50)
+      // NOTE: on Web this block is a no-op — browsers hide the Set-Cookie response
+      // header from JS entirely, and later forbid JS from setting a `Cookie` request
+      // header manually. On Web, session auth instead relies on the browser's own
+      // cookie jar via the credentialed client from createHttpClient() (see
+      // http_client/client_web.dart). This manual extraction only matters on
+      // native (Android/iOS/desktop) builds using the plain IOClient.
       if (response.headers['set-cookie'] != null) {
         String rawCookie = response.headers['set-cookie']!;
         // Extract only "PHPSESSID=value" part, ignoring extra attributes like path/HttpOnly
@@ -54,7 +90,7 @@ class ApiService {
   // LOGOUT
   Future<Map<String, dynamic>> logout() async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/index/login/logout"),
         headers: _authHeaders(),
       );
@@ -69,7 +105,7 @@ class ApiService {
   // CLEAN/CLEAR HEARTBEAT (call once on logout, per API doc)
   Future<void> clearHeartbeat() async {
     try {
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse("$baseUrl/rest/other/user/del_online"),
         headers: _authHeaders(),
       );
@@ -87,7 +123,7 @@ class ApiService {
   // ---------------- HEARTBEAT (call every 20 seconds) ----------------
   Future<bool> sendHeartbeat() async {
     try {
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse("$baseUrl/rest/other/user/online"),
         headers: _authHeaders(),
       );
@@ -120,12 +156,21 @@ class ApiService {
   // Note: pe_signals omitted per vendor's confirmation (internal use only)
   Future<Map<String, dynamic>> getOnlineDevices() async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/other/unitjson/gdlist"),
         headers: _authHeaders(),
         body: jsonEncode({"bh": "bh", "text": "dname"}),
       );
-      return jsonDecode(response.body);
+      final result = jsonDecode(response.body);
+      // The real server nests the company list under data.total (data.lineon is
+      // a separate flat summary list); it is not the plain array the doc's shape
+      // implies. Normalize here so every caller can keep treating `data` as the
+      // flat array of companies regardless of which server we're pointed at.
+      final rawData = result['data'];
+      final companies = rawData is Map
+          ? (rawData['total'] ?? [])
+          : (rawData ?? []);
+      return {"code": result['code'], "msg": result['msg'], "data": companies};
     } catch (e) {
       return {"code": 500, "msg": "Connection error: $e"};
     }
@@ -139,7 +184,7 @@ class ApiService {
   // that shape does not match the doc and would fail against the real server.
   Future<Map<String, dynamic>> getDeviceDetail(List<String> deviceIds) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismoni/get_devicedetail"),
         headers: _authHeaders(),
         body: jsonEncode({"ids": deviceIds}),
@@ -160,7 +205,7 @@ class ApiService {
   // Error response (code 400): data is an Object with error_hostbody, error_code, err_msg, success_data
   Future<Map<String, dynamic>> startVideoCall(List<String> hostbodyList) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/live/chrome/startLive"),
         headers: _authHeaders(),
         body: jsonEncode({"hostbody_arr": hostbodyList}),
@@ -205,7 +250,7 @@ class ApiService {
   // ---------------- STOP VIDEO CALL ----------------
   Future<Map<String, dynamic>> stopVideoCall(List<String> hostbodyList) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/live/chrome/stopLive"),
         headers: _authHeaders(),
         body: jsonEncode({"hostbody_arr": hostbodyList}),
@@ -220,7 +265,7 @@ class ApiService {
   // Same success/error response shape as Start Video Call
   Future<Map<String, dynamic>> startAudioCall(List<String> hostbodyList) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/live/chrome/startAudio"),
         headers: _authHeaders(),
         body: jsonEncode({"hostbody_arr": hostbodyList}),
@@ -263,7 +308,7 @@ class ApiService {
   // ---------------- STOP AUDIO CALL ----------------
   Future<Map<String, dynamic>> stopAudioCall(List<String> hostbodyList, List<String> wsChannelIdList) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/live/chrome/stopAudio"),
         headers: _authHeaders(),
         body: jsonEncode({"hostbody_arr": hostbodyList, "wsChannelId_arr": wsChannelIdList}),
@@ -278,7 +323,7 @@ class ApiService {
   // Per doc: /rest/gis/gismoni/send_cmd - generic command endpoint, "type" determines action
   Future<Map<String, dynamic>> sendCommand(String imei, String type) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismoni/send_cmd"),
         headers: _authHeaders(),
         body: jsonEncode({"imei": imei, "type": type}),
@@ -316,7 +361,7 @@ class ApiService {
       if (sort != null) request.fields['sort'] = sort;
       if (note != null) request.fields['note'] = note;
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
       return jsonDecode(response.body);
     } catch (e) {
@@ -351,7 +396,7 @@ class ApiService {
       if (sort != null) request.fields['sort'] = sort;
       if (note != null) request.fields['note'] = note;
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
       return jsonDecode(response.body);
     } catch (e) {
@@ -379,7 +424,7 @@ class ApiService {
       if (type != null) body['type'] = type;
       if (bind != null) body['bind'] = bind;
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/user/police/policelist"),
         headers: _authHeaders(),
         body: jsonEncode(body),
@@ -394,7 +439,7 @@ class ApiService {
   // Note: pe_signals omitted per vendor's confirmation - it's for internal use only
   Future<Map<String, dynamic>> deleteUser(String id) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/user/police/del"),
         headers: _authHeaders(),
         body: jsonEncode({"id": id}),
@@ -427,7 +472,7 @@ class ApiService {
         filename: imageFileName,
       ));
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
       return jsonDecode(response.body);
     } catch (e) {
@@ -442,7 +487,7 @@ class ApiService {
     required List<String> deviceList,
   }) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismessagesend/send"),
         headers: _authHeaders(),
         body: jsonEncode({"mess_id": messId, "device": deviceList}),
@@ -466,7 +511,7 @@ class ApiService {
       };
       if (keyword != null) body['keyword'] = keyword;
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismessage/messlist"),
         headers: _authHeaders(),
         body: jsonEncode(body),
@@ -503,7 +548,7 @@ class ApiService {
         filename: imageFileName,
       ));
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamedResponse);
       return jsonDecode(response.body);
     } catch (e) {
@@ -514,7 +559,7 @@ class ApiService {
   // ---------------- DELETE MESSAGE (application/json) ----------------
   Future<Map<String, dynamic>> deleteMessage(String id) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismessage/del"),
         headers: _authHeaders(),
         body: jsonEncode({"id": id}),
@@ -542,7 +587,7 @@ class ApiService {
       if (keyword != null) body['keyword'] = keyword;
       if (bh != null) body['bh'] = bh;
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismessagesendlist/messglist"),
         headers: _authHeaders(),
         body: jsonEncode(body),
@@ -560,7 +605,7 @@ class ApiService {
   // Note: pe_signals omitted per vendor's confirmation (internal use only)
   Future<Map<String, dynamic>> getRealtimeLocation(List<String> deviceIds) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismoni/get_point"),
         headers: _authHeaders(),
         body: jsonEncode({"ids": deviceIds}),
@@ -587,7 +632,7 @@ class ApiService {
     required String endIn,
   }) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gishistory/history"),
         headers: _authHeaders(),
         body: jsonEncode({
@@ -615,7 +660,7 @@ class ApiService {
   // Note: pe_signals omitted per vendor's confirmation (internal use only)
   Future<Map<String, dynamic>> remoteKickoff(String imei, String type) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismoni/send_cmd"),
         headers: _authHeaders(),
         body: jsonEncode({"imei": imei, "type": type}),
@@ -632,7 +677,7 @@ class ApiService {
   // Note: pe_signals omitted per vendor's confirmation (internal use only)
   Future<Map<String, dynamic>> remoteRestart(String imei, String hostbody) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/gis/gismoni/send_restart"),
         headers: _authHeaders(),
         body: jsonEncode({"imei": imei, "hostbody": hostbody}),
@@ -671,7 +716,7 @@ class ApiService {
       if (version != null) body['version'] = version;
       if (officerName != null) body['officer_name'] = officerName;
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/device/device/add"),
         headers: _authHeaders(),
         body: jsonEncode(body),
@@ -705,7 +750,7 @@ class ApiService {
       if (state != null) body['state'] = state;
       if (devicetype != null) body['devicetype'] = devicetype;
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/device/device/devicelist"),
         headers: _authHeaders(),
         body: jsonEncode(body),
@@ -745,7 +790,7 @@ class ApiService {
       if (officerName != null) body['officer_name'] = officerName;
       if (hostbody != null) body['hostbody'] = hostbody;
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/device/device/saveedit"),
         headers: _authHeaders(),
         body: jsonEncode(body),
@@ -761,7 +806,7 @@ class ApiService {
   // Note: pe_signals omitted per vendor's confirmation
   Future<Map<String, dynamic>> deleteDevice(String id) async {
     try {
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse("$baseUrl/rest/device/device/del"),
         headers: _authHeaders(),
         body: jsonEncode({"id": id}),

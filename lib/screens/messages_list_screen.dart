@@ -742,7 +742,7 @@ class _MessagesListScreenState extends State<MessagesListScreen> {
                                 final isSelected = selectedDeviceIds.contains(
                                   deviceId,
                                 );
-                                final isOnline = device['lineon'] == 1;
+                                final isOnline = device['lineon']?.toString() == '1';
                                 return GestureDetector(
                                   onTap: () {
                                     setSheetState(() {

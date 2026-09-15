@@ -3,15 +3,15 @@
   "configurations": [
     {
       "name": "bwc-flutter-web",
-      "runtimeExecutable": "C:\\flutter\\flutter\\bin\\flutter.bat",
+      "runtimeExecutable": "/opt/homebrew/bin/flutter",
       "runtimeArgs": ["run", "-d", "web-server", "--web-port=8765"],
       "port": 8765
     },
     {
-      "name": "bwc-web-release",
-      "runtimeExecutable": "py.exe",
-      "runtimeArgs": ["-m", "http.server", "8766", "--directory", "C:\\bwc_app\\build\\web"],
-      "port": 8766
+      "name": "ims-proxy",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["tools/ims_proxy.py"],
+      "port": 9090
     }
   ]
 }
